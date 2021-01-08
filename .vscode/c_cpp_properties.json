@@ -1,0 +1,138 @@
+{
+    "env": {
+        "____________________USER_FIELDS_CAN_BE_MODIFIED____________________": "",
+        "user_cSources": [
+            "Drivers/board/src/heater.c",
+            "Drivers/board/src/menu.c",
+            "Drivers/board/src/peripherals.c",
+            "Drivers/board/src/pinmap.c",
+            "Drivers/module/Src/BME280.c",
+            "Drivers/module/Src/display_buffer.c",
+            "Drivers/module/Src/lcd_12864.c",
+            "Drivers/module/Src/one_wire.c",
+            "Drivers/module/Src/rtc_api.c",
+            "Drivers/module/Src/spi_com.c",
+            "Drivers/module/Src/usb_api.c",
+            "Drivers/module/Src/debounce.c",
+            "Drivers/module/Src/ds18b20.c",
+            "Drivers/module/Src/log.c",
+            "Drivers/module/Src/pwm.c",
+            "Drivers/module/Src/sleep.c",
+            "Drivers/module/Src/Time.c",
+            "Drivers/module/Src/waiter.c"
+        ],
+        "user_asmSources": [],
+        "user_ldSources": [],
+        "user_cIncludes": [
+            "Drivers/board/inc",
+            "Drivers/module/Inc"
+        ],
+        "user_asmIncludes": [],
+        "user_ldIncludes": [],
+        "user_cDefines": [],
+        "user_asmDefines": [],
+        "user_cFlags": [],
+        "user_asmFlags": [],
+        "user_ldFlags": [],
+        "____________________DO_NOT_MODIFY_FIELDS_BELOW____________________": "",
+        "cubemx_sourceFiles": [
+            "Src/main.c",
+            "Src/gpio.c",
+            "Src/adc.c",
+            "Src/i2c.c",
+            "Src/rtc.c",
+            "Src/spi.c",
+            "Src/tim.c",
+            "Src/usart.c",
+            "Src/usb_device.c",
+            "Src/usbd_conf.c",
+            "Src/usbd_desc.c",
+            "Src/usbd_cdc_if.c",
+            "Src/stm32l0xx_it.c",
+            "Src/stm32l0xx_hal_msp.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_usb.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_i2c.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_i2c_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rcc.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rcc_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ramfunc.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_gpio.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_dma.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pwr.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pwr_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_cortex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_exti.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rtc.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rtc_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_spi.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_tim.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_tim_ex.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_uart.c",
+            "Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_uart_ex.c",
+            "Src/system_stm32l0xx.c",
+            "Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c",
+            "Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c",
+            "Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c",
+            "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c",
+            "startup_stm32l072xx.s"
+        ],
+        "cubemx_includes": [
+            "Inc",
+            "Drivers/STM32L0xx_HAL_Driver/Inc",
+            "Drivers/STM32L0xx_HAL_Driver/Inc/Legacy",
+            "Middlewares/ST/STM32_USB_Device_Library/Core/Inc",
+            "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc",
+            "Drivers/CMSIS/Device/ST/STM32L0xx/Include",
+            "Drivers/CMSIS/Include",
+            "Drivers/CMSIS/Include"
+        ],
+        "cubemx_defines": [
+            "USE_HAL_DRIVER",
+            "STM32L072xx"
+        ],
+        "gccExePath": "/usr/local/bin/arm-none-eabi-gcc",
+        "gccIncludePath": "/usr/local/lib/gcc/arm-none-eabi/9.3.1/include"
+    },
+    "configurations": [
+        {
+            "name": "term_code_git",
+            "intelliSenseMode": "msvc-x64",
+            "includePath": [
+                "${workspaceFolder}",
+                "${cubemx_includes}",
+                "${gccIncludePath}",
+                "${user_cIncludes}",
+                "${user_asmIncludes}",
+                "${user_ldIncludes}"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "${cubemx_includes}",
+                    "${gccIncludePath}",
+                    "${user_cIncludes}",
+                    "${user_asmIncludes}",
+                    "${user_ldIncludes}"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "defines": [
+                "${cubemx_defines}",
+                "${user_cDefines}",
+                "${user_asmDefines}"
+            ],
+            "forcedInclude": [],
+            "compilerPath": "${gccExePath}",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
