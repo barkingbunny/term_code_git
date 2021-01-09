@@ -13,6 +13,11 @@
 
 #define LOG_DATA_LENGTH 0x02ff // number of logged samples (max 16bits)
 
+#ifdef DEBUG_TERMOSTAT
+	#define LOG_DATA_LENGTH 0x0f
+#endif
+
+
 typedef struct {
 	uint8_t minute;
 	uint8_t hour;

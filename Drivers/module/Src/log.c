@@ -60,7 +60,7 @@ void RTC_TimeMark_Log_Struct(log_item_t* log_handle, char* showtime)
 void RTC_TimeMark_Log_Struct_Short(log_item_t* log_handle, char* showtime)
 {
 
-  /* Display time Format : yy:mm:dd:hh:mm */
+  /* Display time Format : hh:mm */
   sprintf((char*)showtime,"%02d:%02d", log_handle->hour , log_handle->minute);
 }
 
@@ -160,13 +160,12 @@ uint8_t Log_To_String(char* field_of_char, uint8_t field_lenght){
 	else
 	{
 		RTC_TimeMark_Log_Struct(&log_Handle, TimeMark);
-		snprintf((char*)field_of_char, 32, "%s;%d;%d;",TimeMark,log_Handle.temp_1, log_Handle.hum_1);
+		snprintf((char *)field_of_char, 32, "%s;%d;%d;", TimeMark, log_Handle.temp_1, log_Handle.hum_1);
 	}
-		return log_read_stat;
-		// 2 - if there are more data to read, return 2;
-		// 1 - if all memory was read, return 1;
-		// 0 - nodata in memeory / ERROR
-
+	return log_read_stat;
+	// 2 - if there are more data to read, return 2;
+	// 1 - if all memory was read, return 1;
+	// 0 - nodata in memeory / ERROR
 }
 
 /**
@@ -179,19 +178,20 @@ void Log_Init(){
 } // end Log_Init
 
 void Log_errase_database(void){
-	for (uint16_t index=0; index<LOG_DATA_LENGTH; index++){
-		log_data[index_log_wr].temp_1= 0;
-		log_data[index_log_wr].hum_1 = 0;
-		log_data[index_log_wr].year = 0;
-		log_data[index_log_wr].month = 0;
-		log_data[index_log_wr].day = 0;
-		log_data[index_log_wr].hour = 0;
-		log_data[index_log_wr].minute = 0;
+	for (uint16_t index = 0; index < LOG_DATA_LENGTH; index++)
+	{
+		log_data[index].temp_1 = 0;
+		log_data[index].hum_1 = 0;
+		log_data[index].year = 0;
+		log_data[index].month = 0;
+		log_data[index].day = 0;
+		log_data[index].hour = 0;
+		log_data[index].minute = 0;
 	} // end FOR
-
 }
+
 /**Return number of recorded data in the database
- *
+ * Using day in date (day is not zero (01-31). If it is zero - memory place is free)
  */
 uint16_t Log_memory_fullness(void){
 	uint16_t log_occupate = 0;
