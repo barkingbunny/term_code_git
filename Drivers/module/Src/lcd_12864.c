@@ -8,6 +8,7 @@
 // tenhle file bude obsahovat zakladni nastaveni displeje 12864
 
 #include <pinmap.h>
+#include <peripherals.h>
 #include <Small_7.h>
 #include <Font5x.h>
 #include "spi_com.h"
@@ -21,8 +22,8 @@ SPI_HandleTypeDef *_LCD_hspi;
 void lcd12864_init(SPI_HandleTypeDef *spiHandle){
 	_LCD_hspi=spiHandle;
 	char_x = 0;
-	lcd_width=128;	// up to 256
-	lcd_height=64;
+	lcd_width=LCD_WIDTH;	// up to 256
+	lcd_height=LCD_HEIGHT;
 	magnit= 1;
 	lcd_reset();
 }

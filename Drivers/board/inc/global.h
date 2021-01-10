@@ -10,8 +10,8 @@
 
 #include "stm32l0xx_hal.h"
 
-//#define DEBUG_TERMOSTAT 		// debug of the code is turned OFF
-#define SW_VERSION 260 //verze softwaru
+#define DEBUG_TERMOSTAT 		// debug of the code is turned OFF
+#define SW_VERSION 263 //verze softwaru
 /**
  *
  *
@@ -33,7 +33,7 @@
 #define LOG_PERIODE 600 // in seconds - every 10 minute LOG
 
 #ifdef DEBUG_TERMOSTAT
-	#define LOG_PERIODE 60
+	#define LOG_PERIODE 40
 #endif
 
 #define HEATING_INSTANT 900 // in seconds for 15 minutes is turned on the instant heating

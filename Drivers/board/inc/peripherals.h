@@ -17,6 +17,10 @@
 #define TIMER2_PWM
 //#define TIMER3_PWM  // odkomentovat jen kdyz je nainicializovany Timer 3 v PWM modu
 
+// LCD - definovani parametru displeje / nastaveni displeje
+#define LCD_WIDTH 128
+#define LCD_HEIGHT 64
+
 typedef enum {	BUT_NONE,
 				BUT_1,
 				BUT_2,
