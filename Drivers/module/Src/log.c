@@ -106,7 +106,7 @@ uint8_t Log_Read(log_item_t* log_Handle){
 		index_log_read=index_log_wr-1;  // set the reading data to the latest log
 		flags_log.read_request = TRUE;
 	}
-	if ( 0 != Log_memory_fullness() ) return 0;
+	if ( 0 == Log_memory_fullness() ) return 0;
 
 #ifdef DEBUG_TERMOSTAT
 char buffer_s [32];
@@ -192,6 +192,7 @@ void Log_errase_database(void){
 
 /**Return number of recorded data in the database
  * Using day in date (day is not zero (01-31). If it is zero - memory place is free)
+ * return: number of filled memory space
  */
 uint16_t Log_memory_fullness(void){
 	uint16_t log_occupate = 0;
@@ -202,10 +203,10 @@ uint16_t Log_memory_fullness(void){
 	return log_occupate;
 }
 
-/** Vymaze poslednich "delete_last" zaznamu z databaze
+/** Vymaze nejstarsich (n) "delete_last" zaznamu z databaze
  *
  */
-uint8_t Log_delete_last(uint16_t delete_last){
+uint8_t Log_delete_old(uint16_t delete_old){
 	uint16_t index_log_delete = index_log_wr-1;  // set the reading data to the latest log
 	do {	// Write je uz o jedno vetsi, tak neni treba ho navysovat...
 		index_log_delete++;
@@ -213,7 +214,7 @@ uint8_t Log_delete_last(uint16_t delete_last){
 			index_log_delete = 0;
 		// NEBEZPECI pri prazdnem bufferu se to zde zacykli a kousne se cely procesor
 	} while (0 == log_data[index_log_delete].day);
-	for (uint16_t index=0; index<delete_last; index++){
+	for (uint16_t index=0; index<delete_old; index++){
 		log_data[index_log_delete].temp_1=0;
 		log_data[index_log_delete].hum_1=0;
 		log_data[index_log_delete].year=0;
