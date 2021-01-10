@@ -30,6 +30,8 @@
 #define LED_PERIODE 500 //
 #define TIME_PERIODE 400 // ms definition of periode for checking time change (RTC change )
 #define HEATING_PERIODE 1000 // every 5 minute check for change - turn on / off heater
+
+//#define LOG_ENABLE		// zapnuti funkce logovani
 #define LOG_PERIODE 600 // in seconds - every 10 minute LOG
 
 #ifdef DEBUG_TERMOSTAT

@@ -23,7 +23,6 @@ uint8_t USB_transmit(char *buffer,uint16_t length)
 		for (int j=0; j<length;j++){
 			buffer_2[j] = (uint8_t *)&buffer[j];
 		}
-		uint8_t status;
 		status = CDC_Transmit_FS(&buffer_2[0],length);
 	}
 	return status;

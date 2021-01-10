@@ -200,7 +200,7 @@ uint8_t menu_action(){
 
 				break;
 			}
-			case (printLogUSB):
+			case (printLogUSB): //BLOKOVACI
 						{
 				char buffer_menu [32];
 				uint8_t post = 0;
@@ -225,7 +225,7 @@ uint8_t menu_action(){
 
 				for (uint16_t index=0; index<LOG_DATA_LENGTH; index++) {
 
-					snprintf(buffer_menu3, 27, "%02i;%02u;%02u;%02u;%02u;%03ld.%02d;%3ld%\r\n ", (index+1), log_data[index].month, log_data[index].day, log_data[index].hour,log_data[index].minute,log_data[index].temp_1/100, abs(log_data[index].temp_1%100), (log_data[index].hum_1));
+					snprintf(buffer_menu3, 27, "%03i;%02u;%02u;%02u;%02u;%03ld.%02d;%03ld%\r\n ", (index+1), log_data[index].month, log_data[index].day, log_data[index].hour,log_data[index].minute,log_data[index].temp_1/100, abs(log_data[index].temp_1%100), (log_data[index].hum_1));
 					for (int j=0; j<32;j++){
 						buffer_menu2[j] = (uint8_t *)buffer_menu3[j];
 					}
@@ -256,7 +256,7 @@ uint8_t menu_action(){
 
 				if (pushed_button == BUT_ENC){
 					flags_log.read_request=FALSE;
-					return 0; //exit menu
+					return 0; //exit menu; INTERUPTED by user
 				}
 				if (1 == log_readings) // all data read
 					return 0;//exit menu, finished
@@ -269,14 +269,20 @@ uint8_t menu_action(){
 			case(eraseLogMem):
 				{
 				char buffer_menu [32];
-				//LCD vypis
 				lcd_clear();
-				lcd_setCharPos(3,1);
-				snprintf(buffer_menu, 16, "Log memory - erased");
+				lcd_setCharPos(2,0);
+				snprintf(buffer_menu, 20, "Pocet logu %3u/%u", Log_memory_fullness(), LOG_DATA_LENGTH);
 				lcd_printString(buffer_menu);
 
-				//vymzani logovaci databaze/pameti
+				//vymazani logovaci databaze/pameti
 				Log_errase_database();
+				//LCD vypis
+				lcd_setCharPos(3,1);
+				snprintf(buffer_menu, 20, "Log memory - erased");
+				lcd_printString(buffer_menu);
+				lcd_setCharPos(5,0);
+				snprintf(buffer_menu, 20, "Pocet logu %3u/%u", Log_memory_fullness(), LOG_DATA_LENGTH);
+				lcd_printString(buffer_menu);
 
 				HAL_Delay(1000);
 
@@ -336,6 +342,7 @@ void display_menu(menu_item_t* display_menu) {
 			RTC_TimeShow_time(&set_stimestructureget,buffer_menu);
 			lcd_setCharPos(1,10);
 			lcd_printString(buffer_menu);
+
 #ifdef DEBUG_TERMOSTAT
 		lcd_setCharPos(7,8);
 		snprintf(buffer_menu, 19, "pozice %d", position_x);

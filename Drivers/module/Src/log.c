@@ -106,14 +106,7 @@ uint8_t Log_Read(log_item_t* log_Handle){
 		index_log_read=index_log_wr-1;  // set the reading data to the latest log
 		flags_log.read_request = TRUE;
 	}
-	if ( 0 == Log_memory_fullness() ) return 0;
-
-#ifdef DEBUG_TERMOSTAT
-char buffer_s [32];
-lcd_setCharPos(1,0);
-snprintf(buffer_s, 19, "rd=%3i;wr%3i  ", index_log_read, index_log_wr-1);
-lcd_printString(buffer_s);
-#endif
+	if ( 0 == Log_memory_fullness() ) return 0; // pokud je prazdny buffer, tak nepokracuj a vrat 0;
 
 	do {	// Write je uz o jedno vetsi, tak neni treba ho navysovat...
 		index_log_read++;
@@ -121,14 +114,6 @@ lcd_printString(buffer_s);
 			index_log_read = 0;
 		// NEBEZPECI pri prazdnem bufferu se to zde zacykli a kousne se cely procesor
 	} while (0 == log_data[index_log_read].day);
-
-
-
-#ifdef DEBUG_TERMOSTAT
-lcd_setCharPos(2,0);
-snprintf(buffer_s, 10, "ctu %3i ", index_log_read);
-lcd_printString(buffer_s);
-#endif
 
 	//memcpy(log_Handle, log_data[index_log_read], arraysize * sizeof (struct log_item_t));
 	log_Handle->temp_1 = log_data[index_log_read].temp_1;

@@ -198,13 +198,12 @@ int main(void)
 	fill_comparer(BUT_DELAY, &button_compare);
 	fill_comparer(10, &heating_compare);		 // check it immediately
 	fill_comparer_seconds(30, &logging_compare); // chci zapisovat hned po zmereni hodnot / ZAPNUTI
+
 	show_timeout.tick = 0xfffffffe;
 	heating_instant_timeout.tick = 0;
-
-	/*##- 4- Start the conversion process #######################################*/
-	if (HAL_ADC_Start(&hadc) != HAL_OK)
+	// ADC - calibration
+	if (HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED) != HAL_OK)
 	{
-		/* Start Conversation Error */
 		Error_Handler();
 	}
 
@@ -212,8 +211,25 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+
+#ifdef DEBUG_TERMOSTAT
+	uint32_t cas_zacatku = 0;
+	uint32_t cas_konce = 0;
+	uint32_t cas_index = 0;
+	uint32_t cas_prumer = 0;
+	uint32_t cas_aktualni = 0;
+	uint32_t cas_celkem = 0;
+	uint8_t cas_transmit = 0;
+
+#endif
+
 	for (;;)
 	{
+#ifdef DEBUG_TERMOSTAT
+		cas_zacatku = HAL_GetTick();
+
+#endif
+
 		switch (current_state)
 		{
 		case SLEEP:
@@ -245,20 +261,9 @@ int main(void)
 		case VOLTAGE:
 
 		{
-
-			/*##- 5- Wait for the end of conversion #####################################*/
-			/*  Before starting a new conversion, you need to check the current state of
-  			         the peripheral; if it�s busy you need to wait for the end of current
-  			         conversion before starting a new one.
-  			         For simplicity reasons, this example is just waiting till the end of the
-  			         conversion, but application may perform other tasks while conversion
-  			         operation is ongoing. */
-			HAL_ADC_PollForConversion(&hadc, 10);
-
-			/* Check if the continous conversion of regular channel is finished */
-			if ((HAL_ADC_GetState(&hadc) & HAL_ADC_STATE_REG_EOC) == HAL_ADC_STATE_REG_EOC)
+			HAL_ADC_Start(&hadc);
+			if (HAL_ADC_PollForConversion(&hadc, 10) == HAL_OK)
 			{
-				/*##-6- Get the converted value of regular channel  ########################*/
 				InputVoltage = HAL_ADC_GetValue(&hadc);
 			}
 
@@ -309,7 +314,7 @@ int main(void)
 			current_state = IDLE;
 			break;
 		}
-
+#ifdef LOG_ENABLE
 		case LOG:
 		{
 			if (flags.log_enable)
@@ -317,10 +322,11 @@ int main(void)
 				Log_Temperature(&hrtc, temperature, humid);
 			}
 			fill_comparer_seconds(LOG_PERIODE, &logging_compare);
-			sirka = Log_memory_fullness() * lcd_width / LOG_DATA_LENGTH;
+			sirka = Log_memory_fullness() * LCD_WIDTH / LOG_DATA_LENGTH;
 			current_state = IDLE;
 			break;
 		}
+#endif
 		default:
 		{
 			break;
@@ -389,9 +395,6 @@ int main(void)
 				// cara bude na spodni strane a bude tri tecky siroka
 				{
 					line(0, 62, sirka, 62, 1);
-					/*				line(0,63,sirka,63,1);
-					line(0,64,sirka,64,1);
-*/
 				}
 
 			} // end if - new data to show
@@ -635,13 +638,39 @@ int main(void)
 		} // switch pushed button
 
 		HAL_Delay(MAIN_LOOP);
-debug_led_heartbeat();
-
-
-
 #ifdef DEBUG_TERMOSTAT
-//		debug_led_heartbeat();
+		debug_led_heartbeat();
 #endif
+/*
+#ifdef DEBUG_TERMOSTAT
+uint8_t buffer_menu2 [32] = "";
+		cas_konce = HAL_GetTick();
+		cas_index++;
+		cas_aktualni = cas_konce - cas_zacatku;
+		cas_celkem += cas_aktualni;
+		cas_prumer = cas_celkem / cas_index;
+if(0==cas_index%100){
+		snprintf(buffer_s, 18, "aktualni %08lu", cas_aktualni);
+		for (int j=0; j<32;j++){
+						buffer_menu2[j] = (uint8_t *)buffer_s[j];
+					}
+		{
+			HAL_Delay(3);
+			cas_transmit = CDC_Transmit_FS(&buffer_menu2[0],18);
+		}while (cas_transmit == USBD_BUSY);
+		cas_transmit = 1;
+		snprintf(buffer_s, 16, "prumer %08lu", cas_prumer);
+		for (int j=0; j<32;j++){
+						buffer_menu2[j] = (uint8_t *)buffer_s[j];
+					}
+		{
+			HAL_Delay(3);
+			cas_transmit = CDC_Transmit_FS(&buffer_menu2[0],16);
+		}while (cas_transmit == USBD_BUSY);
+}
+
+#endif
+*/
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
