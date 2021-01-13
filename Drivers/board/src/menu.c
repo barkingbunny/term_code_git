@@ -388,7 +388,7 @@ void display_menu(menu_item_t* display_menu) {
 					}
 					lcd_setCharPos(5,3);
 					char_magnitude(2);
-					snprintf(buffer_menu, 12, "%3ld.%02d C ",set_temperature/100,abs(set_temperature%100));
+					snprintf(buffer_menu, 12, "%3ld.%02ld C ",set_temperature/100,abs(set_temperature%100));
 					lcd_printString(buffer_menu);
 					char_magnitude(1);
 				}
