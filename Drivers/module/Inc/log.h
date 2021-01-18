@@ -11,12 +11,18 @@
 #include "pinmap.h"
 #include "global.h"
 
-#define LOG_DATA_LENGTH 0x02ff // number of logged samples (max 16bits)
+#define LOG_DATA_LENGTH 0x0ff // number of logged samples (max 16bits)
 
 #ifdef DEBUG_TERMOSTAT
 	#define LOG_DATA_LENGTH 0x03f
 #endif
 
+typedef struct {
+	uint8_t regulation_temp:1; // regulation of temp is enabled (ON).
+	uint8_t heating_instant:1; // heating instant (ON)- heating up for defined time period.
+	uint8_t heating_up:1; // The output1 is ENABLED - Heater is heating
+	
+}log_enable_flag_t;
 
 typedef struct {
 	uint8_t minute;
@@ -26,6 +32,7 @@ typedef struct {
 	uint8_t year;
 	int16_t temp_1;
 	int16_t hum_1;
+	log_enable_flag_t enable_flag;
 }log_item_t;
 
 typedef struct {

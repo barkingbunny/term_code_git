@@ -17,6 +17,15 @@
 uint16_t index_log_wr = 0;
 uint16_t index_log_read = 0xfffe;
 
+/** 
+ * Inicializace databaze - je to nutne na zacatku
+ */
+void Log_Init(){
+	flags_log.read_request = FALSE;
+// delete complete variable log_data
+	Log_errase_database();
+} // end Log_Init
+
 uint8_t Log_Data(RTC_HandleTypeDef* RtcHandle, int16_t temperature, int16_t humidity, int16_t pressure, uint16_t diagnostics)
 {
 	char TimeMark[25] = {0};
@@ -88,6 +97,10 @@ uint8_t Log_Temperature(RTC_HandleTypeDef* RtcHandle, int32_t temperature, int32
 	log_data[index_log_wr].hour = rtc_time_structure.Hours;
 	log_data[index_log_wr].minute = rtc_time_structure.Minutes;
 
+	log_data[index_log_wr].enable_flag.heating_up = flags.heating_up;
+	log_data[index_log_wr].enable_flag.regulation_temp = flags.regulation_temp;
+	log_data[index_log_wr].enable_flag.heating_instant = flags.heating_instant;
+
 	index_log_wr++;
 	if (index_log_wr >= LOG_DATA_LENGTH)
 		index_log_wr = 0;
@@ -124,6 +137,10 @@ uint8_t Log_Read(log_item_t* log_Handle){
 	log_Handle->hour = log_data[index_log_read].hour;
 	log_Handle->minute = log_data[index_log_read].minute;
 
+	log_Handle->enable_flag.heating_up = log_data[index_log_read].enable_flag.heating_up;
+	log_Handle->enable_flag.regulation_temp = log_data[index_log_read].enable_flag.regulation_temp;
+	log_Handle->enable_flag.heating_instant = log_data[index_log_read].enable_flag.heating_instant;	
+
 	if (index_log_read != index_log_wr-1){
 		return 2;
 	}
@@ -132,6 +149,13 @@ uint8_t Log_Read(log_item_t* log_Handle){
 	return 1;
 }
 
+/** Log data - transfered to string
+ * field_lenght 18 => short version; 32 = normal version
+ * return statements:
+ * 2 - if there are more data to read, return 2;
+ * 1 - if all memory was read, return 1;
+ * 0 - nodata in memeory / ERROR
+ */
 uint8_t Log_To_String(char* field_of_char, uint8_t field_lenght){
 	log_item_t log_Handle;
 	uint8_t log_read_stat= 0;
@@ -148,30 +172,23 @@ uint8_t Log_To_String(char* field_of_char, uint8_t field_lenght){
 		snprintf((char *)field_of_char, 32, "%s;%d;%d;", TimeMark, log_Handle.temp_1, log_Handle.hum_1);
 	}
 	return log_read_stat;
-	// 2 - if there are more data to read, return 2;
-	// 1 - if all memory was read, return 1;
-	// 0 - nodata in memeory / ERROR
 }
 
-/**
- * Inicializace databaze - je to nutne na zacatku
- */
-void Log_Init(){
-	flags_log.read_request = FALSE;
-// delete complete variable log_data
-	Log_errase_database();
-} // end Log_Init
+
 
 void Log_errase_database(void){
-	for (uint16_t index = 0; index < LOG_DATA_LENGTH; index++)
+	for (uint16_t index_log_delete = 0; index_log_delete < LOG_DATA_LENGTH; index_log_delete++)
 	{
-		log_data[index].temp_1 = 0;
-		log_data[index].hum_1 = 0;
-		log_data[index].year = 0;
-		log_data[index].month = 0;
-		log_data[index].day = 0;
-		log_data[index].hour = 0;
-		log_data[index].minute = 0;
+		log_data[index_log_delete].temp_1 = 0;
+		log_data[index_log_delete].hum_1 = 0;
+		log_data[index_log_delete].year = 0;
+		log_data[index_log_delete].month = 0;
+		log_data[index_log_delete].day = 0;
+		log_data[index_log_delete].hour = 0;
+		log_data[index_log_delete].minute = 0;
+		log_data[index_log_delete].enable_flag.heating_up = 0;
+		log_data[index_log_delete].enable_flag.regulation_temp = 0;
+		log_data[index_log_delete].enable_flag.heating_instant = 0;
 	} // end FOR
 }
 
@@ -207,6 +224,9 @@ uint8_t Log_delete_old(uint16_t delete_old){
 		log_data[index_log_delete].day=0;
 		log_data[index_log_delete].hour=0;
 		log_data[index_log_delete].minute=0;
+		log_data[index_log_delete].enable_flag.heating_up = 0;
+		log_data[index_log_delete].enable_flag.regulation_temp = 0;
+		log_data[index_log_delete].enable_flag.heating_instant = 0;
 		index_log_delete++;
 
 	}

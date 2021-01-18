@@ -138,7 +138,7 @@ int main(void)
 	char aShowTime[50] = {0};
 
 	//debug
-	Bool beta_part = 0, show_time = TRUE;
+	Bool show_time = TRUE;
 	//debug
 
 	//timeouts
@@ -400,39 +400,13 @@ int main(void)
 			} // end if - new data to show
 			if (show_time)
 			{
-
 				RTC_DateShow(&hrtc, aShowTime);
 				lcd_setCharPos(0, 11);
 				lcd_printString(aShowTime);
 				RTC_TimeShow(&hrtc, aShowTime);
-				//lcd_setCharPos(0,12);
 				lcd_setCharPos(0, 1);
 				lcd_printString(aShowTime);
-
-#ifdef DEBUG_TERMOSTAT //debug
-				lcd_setCharPos(3, 20);
-				if (beta_part)
-				{
-					lcd_printString("T");
-					beta_part = FALSE;
-				}
-				else
-				{
-					lcd_printString("-");
-					beta_part = TRUE;
-				}
-
-				/*		lcd_setCharPos(7,9);
-				snprintf(buffer_s, 13, "sys%8ld;",actual_HALtick.tick);
-				lcd_printString(buffer_s);
-
-				lcd_setCharPos(6,12);
-				snprintf(buffer_s, 10, "%8ld;",backlite_compare.tick);
-				lcd_printString(buffer_s);
-		 */
-				//debug
-#endif
-				// end of the time part - new timer set.
+			
 				fill_comparer(TIME_PERIODE, &time_compare);
 				show_time = FALSE;
 			}
@@ -526,13 +500,19 @@ int main(void)
 		if (TRUE == flags.menu_running)
 		{ // je to takhle slozite , protoze jsem neprisel na jiny efektivni zpusob, jak smazat displej, po zkonceni menu
 			if (!menu_timout())
-			{
-				if (!menu_action())
+			{ uint8_t menu_exit_code = menu_action();
+				if (!menu_exit_code)
 				{ // exit from menu condition
+
+					switch (menu_exit_code){
+						case 20:  // exit after log erasse
+						sirka = Log_memory_fullness() * LCD_WIDTH / LOG_DATA_LENGTH; 
+						break;
+						}
 					flags.menu_running = 0;
 					lcd_clear();
 					show = desktop;
-				}
+					}
 				else
 					show = menu;
 			} // if menu - TIMEOUT
@@ -576,7 +556,7 @@ int main(void)
 		if (pushed_button != BUT_NONE) // any button pushed?
 		{
 			backliteOn();
-			fill_comparer(BUT_DELAY * 200, &button_compare); // 200x - zpozdeni cteni pri stisknuti
+			fill_comparer(BUT_DELAY * 150, &button_compare); // 200x - zpozdeni cteni pri stisknuti
 			fill_comparer(BACKLITE_TIMEOUT, &backlite_compare);
 			fill_comparer(SHOW_TIMEOUT, &show_timeout);
 		}
