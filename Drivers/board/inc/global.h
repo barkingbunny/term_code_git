@@ -10,7 +10,7 @@
 
 #include "stm32l0xx_hal.h"
 
-#define SW_VERSION 268 //verze softwaru
+#define SW_VERSION 269 //verze softwaru
 
 //NASTAVENI:
 #define DEBUG_TERMOSTAT 		// debug of the code is turned OFF

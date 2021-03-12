@@ -173,6 +173,7 @@ int main(void)
 	lcd_printString("termostat_git\r");
 	snprintf(buffer_s, 11, "SW v 0.%d", SW_VERSION);
 	lcd_printString(buffer_s);
+		
 
 	HAL_TIM_Encoder_Start(&htim22, TIM_CHANNEL_1);
 
@@ -181,7 +182,7 @@ int main(void)
 
 	BME280_init(&hi2c1, DEFAULT_SLAVE_ADDRESS); // initialization of temp/humid sensor BOSH
 
-	HAL_Delay(1700);
+	HAL_Delay(1500);
 	lcd_clear();
 
 	//settings variables to default values
@@ -355,7 +356,7 @@ int main(void)
 					_putc(0x07f);
 				if (flags.heating_instant_req){
 					flags.heating_instant_req = FALSE;
-					if (!flags.heating_instant)
+					if (!flags.heating_instant) 
 					{
 						lcd_setCharPos(4, 19);
 						lcd_printString(" ");
@@ -566,6 +567,8 @@ int main(void)
 			fill_comparer(BUT_DELAY * 150, &button_compare); // 200x - zpozdeni cteni pri stisknuti
 			fill_comparer(BACKLITE_TIMEOUT, &backlite_compare);
 			fill_comparer(SHOW_TIMEOUT, &show_timeout);
+			// neco se zmenilo uzivatel - prekreslit cely displej
+			flags.new_data_to_show = TRUE;
 		}
 
 		// -- BUTTON PROCCESS
@@ -582,8 +585,7 @@ int main(void)
 			{
 				flags.regulation_temp = FALSE;
 			}
-			// new data to show - heating icon.
-			flags.new_data_to_show = TRUE;
+			
 			//	show = debug;
 
 			break;
@@ -594,8 +596,10 @@ int main(void)
 			flags.heating_instant = TRUE;
 			flags.heating_instant_req = TRUE;
 			heat_instant++;
-			if (6 < heat_instant)
+			if (6 < heat_instant){
+				flags.heating_instant = FALSE;
 				heat_instant = 0;
+			}
 			fill_comparer_seconds(HEATING_INSTANT * heat_instant, &heating_instant_timeout);
 			break;
 		}
@@ -610,6 +614,7 @@ int main(void)
 				htim22.Instance->CNT = 0;
 				activation_memu();
 				lcd_clear();
+				show = menu;
 
 				// if this command means go to menu, That there shouldn't be no more pressed.
 				pushed_button = BUT_NONE;
@@ -629,6 +634,7 @@ int main(void)
 		} // switch pushed button
 
 		HAL_Delay(MAIN_LOOP);
+		
 #ifdef DEBUG_TERMOSTAT
 		debug_led_heartbeat();
 #endif

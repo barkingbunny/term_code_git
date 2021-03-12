@@ -21,6 +21,7 @@ const menu_item_t setTime;
 const menu_item_t setTemp;
 const menu_item_t put_menuReset;
 const menu_item_t extLOG;
+const menu_item_t internalSettings ;
 const menu_item_t about;
 //TIME submenus
 const menu_item_t setDate;
@@ -29,6 +30,7 @@ const menu_item_t setClock;
 const menu_item_t i_printLogLCD;
 const menu_item_t i_printLogUSB;
 const menu_item_t i_eraseLogMem;
+const menu_item_t i_backlight_intensity;
 
 
 /*
@@ -44,7 +46,7 @@ const menu_item_t i_eraseLogMem;
 const menu_item_t MainMenu = {
 		"MENU",
 		5,
-		{&setTemp,&setTime,&extLOG,&put_menuReset,&about},
+		{&setTemp,&setTime,&extLOG,&put_menuReset,&internalSettings},
 		NULL,
 		next
 };
@@ -80,11 +82,19 @@ const menu_item_t extLOG = {
 		&MainMenu,
 		next
 };
+
+const menu_item_t internalSettings = {
+		"SETTINGS",
+		2,
+		{&i_backlight_intensity,&about},
+		&MainMenu,
+		next
+};
 const menu_item_t about = {
 		"ABOUT",
 		0,
 		{NULL},
-		&MainMenu,
+		&internalSettings,
 		information
 };
 
@@ -131,7 +141,13 @@ const menu_item_t i_eraseLogMem = {
 		eraseLogMem
 };
 
-
+const menu_item_t i_backlight_intensity = {
+		"Backlight",
+		0,
+		{NULL},
+		&internalSettings,
+		backlight_intensity
+};
 
 
 

@@ -284,3 +284,45 @@ uint8_t running_bool = FALSE;
 	return running_bool;
 
 }
+/**
+ * @note Funkce zjisti jakou hodnotu PWM ma dany kanal a vrati jej
+ * 
+*/
+
+uint16_t PWM_duty_read(uint8_t pwm_channel){
+	uint16_t pwm_duty = 0;	
+
+	switch(pwm_channel){
+#ifdef TIMER2_PWM
+	case (21): {
+		pwm_duty = htim2.Instance->CCR1;
+		break; }
+	case (22): {
+		pwm_duty = htim2.Instance->CCR2; 
+		break; }
+	case (23): {
+		pwm_duty = htim2.Instance->CCR3; 
+		break; }
+	case (24): {
+		pwm_duty = htim2.Instance->CCR4; 
+		break;}
+#endif
+#ifdef TIMER3_PWM
+	case (31):{
+		pwm_duty = htim3.Instance->CCR1;
+		break; }
+	case (32):	{
+		pwm_duty = htim3.Instance->CCR2;
+		break; 	}
+	case (33):	{
+		pwm_duty = htim3.Instance->CCR3;
+		break;	}
+	case (34):	{
+		pwm_duty = htim3.Instance->CCR4;
+		break; 	}
+#endif
+	}
+	
+return pwm_duty;
+
+}

@@ -17,6 +17,7 @@
 #include "usb_device.h"
 #include "log.h"
 #include "usb_api.h"
+#include "pwm.h"
 
 
 #define MAX_MENU_ITEM 5
@@ -32,7 +33,8 @@ typedef enum EnSetMenu_t{
 	menuReset,
 	printLogLCD,
 	information,
-	eraseLogMem
+	eraseLogMem,
+	backlight_intensity
 } EnSetMenu;
 
 typedef struct menu_item_s{

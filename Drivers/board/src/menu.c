@@ -255,10 +255,10 @@ uint8_t menu_action()
 		for (uint16_t index = 0; index < LOG_DATA_LENGTH; index++)
 		{
 			log_flag = log_data[index].enable_flag.heating_up;
-			log_flag |= log_data[index].enable_flag.regulation_temp<<1;
-			log_flag |= log_data[index].enable_flag.heating_instant<<2;
+			log_flag |= log_data[index].enable_flag.regulation_temp << 1;
+			log_flag |= log_data[index].enable_flag.heating_instant << 2;
 
-			snprintf(buffer_menu3, 30, "%03i;%02u;%02u;%02u;%02u;%03ld.%02d;%03ld%;%02x\r\n ", (index + 1), log_data[index].month, log_data[index].day, log_data[index].hour, log_data[index].minute, log_data[index].temp_1 / 100, abs(log_data[index].temp_1 % 100), (log_data[index].hum_1),log_flag);
+			snprintf(buffer_menu3, 30, "%03i;%02u;%02u;%02u;%02u;%03ld.%02d;%03ld%;%02x\r\n ", (index + 1), log_data[index].month, log_data[index].day, log_data[index].hour, log_data[index].minute, log_data[index].temp_1 / 100, abs(log_data[index].temp_1 % 100), (log_data[index].hum_1), log_flag);
 			for (int j = 0; j < 32; j++)
 			{
 				buffer_menu2[j] = (uint8_t *)buffer_menu3[j];
@@ -331,6 +331,19 @@ uint8_t menu_action()
 		NVIC_SystemReset();
 		break;
 	}
+	case (backlight_intensity):
+	{
+
+		if (pushed_button == BUT_ENC)
+		{
+
+			flags.menu_running = 0;
+			lcd_clear();
+			return 0; //exit menu
+		}
+		break;
+	}
+
 	case (information):
 	{
 
@@ -457,6 +470,27 @@ void display_menu(menu_item_t *display_menu)
  */
 			break;
 		}
+
+		case (backlight_intensity): // intenzita podsviceni
+		{
+
+			
+			uint16_t backlite_duty = PWM_duty_read(LCD_LIGHT);
+			if (en_count != 0){
+				PWM_duty_change(LCD_LIGHT, backlite_duty + en_count);
+				en_count = 0;
+			}
+			lcd_setCharPos(1, 0);
+			lcd_printString("  Nastaveni Intezity\r");
+			lcd_printString("\r");
+			char_magnitude(2);
+			snprintf(buffer_menu, 10, " %3u", PWM_duty_read(LCD_LIGHT));
+			lcd_printString(buffer_menu);
+			char_magnitude(1);
+
+			break;
+		}
+
 		case (information): // Zde se budou vypisovat informace ohledne FW/HW
 		{
 			lcd_setCharPos(1, 0);

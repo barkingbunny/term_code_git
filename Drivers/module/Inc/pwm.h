@@ -31,6 +31,7 @@ void PWM_stop(uint8_t pwm_channel);
 void PWM_togle(uint8_t pwm_channel);
 void PWM_duty_change(uint8_t pwm_channel, uint16_t new_duty);
 uint8_t PWM_status(uint8_t pwm_channel);
+uint16_t PWM_duty_read(uint8_t pwm_channel);
 
 
 #endif /* MODULE_INC_PWM_H_ */
