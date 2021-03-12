@@ -14,7 +14,7 @@
 #define LOG_DATA_LENGTH 0x0ff // number of logged samples (max 16bits)
 
 #ifdef DEBUG_TERMOSTAT
-	#define LOG_DATA_LENGTH 0x03f
+	#define LOG_DATA_LENGTH 0x04
 #endif
 
 typedef struct {

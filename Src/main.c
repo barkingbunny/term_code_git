@@ -136,6 +136,7 @@ int main(void)
 	int16_t count1;
 	uint16_t sirka = 0;
 	char aShowTime[50] = {0};
+	uint8_t heat_instant = 0;
 
 	//debug
 	Bool show_time = TRUE;
@@ -212,23 +213,8 @@ int main(void)
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 
-#ifdef DEBUG_TERMOSTAT
-	uint32_t cas_zacatku = 0;
-	uint32_t cas_konce = 0;
-	uint32_t cas_index = 0;
-	uint32_t cas_prumer = 0;
-	uint32_t cas_aktualni = 0;
-	uint32_t cas_celkem = 0;
-	uint8_t cas_transmit = 0;
-
-#endif
-
 	for (;;)
 	{
-#ifdef DEBUG_TERMOSTAT
-		cas_zacatku = HAL_GetTick();
-
-#endif
 
 		switch (current_state)
 		{
@@ -279,11 +265,14 @@ int main(void)
 		{
 			if (flags.heating_instant)
 			{
-				//if(heating_instant_timeout.tick > actual_HALtick)
+
 				if (!comparer_timeout(&heating_instant_timeout))
 					turnOnHeater(temperature);
 				else
+				{
 					flags.heating_instant = FALSE;
+					heat_instant = 0;
+				}
 			}
 			else
 			{
@@ -364,12 +353,17 @@ int main(void)
 					lcd_printString("-");
 				else
 					_putc(0x07f);
-
-				lcd_setCharPos(4, 19);
-				if (!flags.heating_instant)
-					lcd_printString(" ");
-				else
-					_putc(0x07f);
+				if (flags.heating_instant_req){
+					flags.heating_instant_req = FALSE;
+					if (!flags.heating_instant)
+					{
+						lcd_setCharPos(4, 19);
+						lcd_printString(" ");
+						char_magnitude(1);
+						lcd_setCharPos(6, 15);
+						snprintf(buffer_s, 8, "        ");
+						lcd_printString(buffer_s);
+					}}
 
 				// END Marking - heating is active/not active
 
@@ -406,7 +400,18 @@ int main(void)
 				RTC_TimeShow(&hrtc, aShowTime);
 				lcd_setCharPos(0, 1);
 				lcd_printString(aShowTime);
-			
+
+				if (flags.heating_instant) // odpocet casu pro instant heating
+				{
+					char_magnitude(2);
+					lcd_setCharPos(4, 19);
+					_putc(0x07f);
+					char_magnitude(1);
+					lcd_setCharPos(6, 15);
+					uint16_t instantEndTime = end_of_timeout(&heating_instant_timeout);
+					snprintf(buffer_s, 8, "%3u:%02u", instantEndTime / 60, instantEndTime % 60);
+					lcd_printString(buffer_s);
+				}
 				fill_comparer(TIME_PERIODE, &time_compare);
 				show_time = FALSE;
 			}
@@ -500,19 +505,21 @@ int main(void)
 		if (TRUE == flags.menu_running)
 		{ // je to takhle slozite , protoze jsem neprisel na jiny efektivni zpusob, jak smazat displej, po zkonceni menu
 			if (!menu_timout())
-			{ uint8_t menu_exit_code = menu_action();
-				if (!menu_exit_code)
+			{
+				uint8_t menu_exit_code = menu_action();
+				if (1 != menu_exit_code)
 				{ // exit from menu condition
 
-					switch (menu_exit_code){
-						case 20:  // exit after log erasse
-						sirka = Log_memory_fullness() * LCD_WIDTH / LOG_DATA_LENGTH; 
+					switch (menu_exit_code)
+					{
+					case 20: // exit after log erasse
+						sirka = Log_memory_fullness() * LCD_WIDTH / LOG_DATA_LENGTH;
 						break;
-						}
+					}
 					flags.menu_running = 0;
 					lcd_clear();
 					show = desktop;
-					}
+				}
 				else
 					show = menu;
 			} // if menu - TIMEOUT
@@ -585,7 +592,11 @@ int main(void)
 		{ // Immediattely heating for 15 minutes
 
 			flags.heating_instant = TRUE;
-			fill_comparer_seconds(HEATING_INSTANT, &heating_instant_timeout);
+			flags.heating_instant_req = TRUE;
+			heat_instant++;
+			if (6 < heat_instant)
+				heat_instant = 0;
+			fill_comparer_seconds(HEATING_INSTANT * heat_instant, &heating_instant_timeout);
 			break;
 		}
 		case BUT_ENC:
@@ -621,7 +632,7 @@ int main(void)
 #ifdef DEBUG_TERMOSTAT
 		debug_led_heartbeat();
 #endif
-/*
+		/*
 #ifdef DEBUG_TERMOSTAT
 uint8_t buffer_menu2 [32] = "";
 		cas_konce = HAL_GetTick();
