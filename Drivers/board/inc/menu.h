@@ -24,6 +24,7 @@
 #define MAX_MENU_ITEM 5
 #define MAX_CHAR_LENGHT 18
 #define MENU_TIMOUT 10000 // x second
+#define MINUT_DEN 24*60 // kolik ma den minut
 
 typedef enum EnSetMenu_t{
 	clock,

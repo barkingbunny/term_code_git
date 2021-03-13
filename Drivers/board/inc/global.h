@@ -25,6 +25,15 @@
   33904	   1072	  17152	  52128	   cba0	termostat_git.elf   // logovani size - RAM pamet - 0x2ff
   40136    1120   15624   56880    de30 build/term_code_git.elf
 
+    text: is the size of all code in your application.
+    data: is the size of initialized global variables. It counts both flash memory and RAM, as it's copied from flash to RAM during startup.
+    bss: is the size of global variables which are initialized to zero (or are uninitialized, and hence default to zero). They're stored in RAM only.
+    dec: and hex are the sum of text + data + bss in decimal and hexadecimal. This value doesn't really mean much on a microcontroller, so it should be ignored. (In environments where a program must be loaded into memory before running, it would be the total memory footprint of the program.)
+
+	RAM usage of program, = data + bss 
+
+	FLASH usage of program, = text + data.
+
  */
 
 #define BUT_DELAY 1		// in milisecond - I want to read it quckly
@@ -33,7 +42,7 @@
 #define LED_PERIODE 500 //
 #define TIME_PERIODE 400 // ms definition of periode for checking time change (RTC change )
 #define HEATING_PERIODE 1000 // every 5 minute check for change - turn on / off heater
-#define AUTO_TIMERS 6 // pocet casovych sekci pro nastavovani automatickeho topeni
+
 
 #define LOG_PERIODE 600 // in seconds - every 10 minute LOG
 

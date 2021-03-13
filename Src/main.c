@@ -185,9 +185,8 @@ int main(void)
 
 #ifdef DEBUG_TERMOSTAT //debug
 
-	lcd_setCharPos(6, 0);
-	snprintf(buffer_s, 18, "stav:  %3s  %u", temp_auto.status[0].state ? "ON" : "OFF",temp_auto.status[0].state);
-	lcd_printString(buffer_s);
+	
+	
 	
 #endif
 

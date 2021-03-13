@@ -8,6 +8,8 @@
 #ifndef MODULE_TIME_H_
 #define MODULE_TIME_H_
 
+#define AUTO_TIMERS 6 // pocet casovych sekci pro nastavovani automatickeho topeni
+
 typedef struct {
 	uint32_t tick;
 	uint8_t overflow:1;
@@ -31,8 +33,7 @@ typedef struct {
  * 
  */
 typedef struct {
-	uint16_t On; // hodnota na kterou se zapne
-	uint16_t Off; // honota na kterou se vypne
+	uint16_t tempOn[AUTO_TIMERS]; // hodnota na kterou se zapne
 	uint16_t housekeep; // hodnota pro standby rezim
 	Time_short_s time_s[AUTO_TIMERS]; 	// casy pro zmenu
 	Flags_mode_s status[AUTO_TIMERS]; 	// statusy pro kazdy timer

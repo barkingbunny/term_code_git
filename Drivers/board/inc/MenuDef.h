@@ -90,17 +90,9 @@ const menu_item_t internalSettings = {
 		&MainMenu,
 		next
 };
-const menu_item_t about = {
-		"ABOUT",
-		0,
-		{NULL},
-		&internalSettings,
-		information
-};
 
 
 /* submenu for TIME */
-
 const menu_item_t setClock = {
 		"Clock",
 		0,
@@ -140,13 +132,21 @@ const menu_item_t i_eraseLogMem = {
 		&extLOG,
 		eraseLogMem
 };
-
+/* submenu for settings */
 const menu_item_t i_backlight_intensity = {
 		"Backlight",
 		0,
 		{NULL},
 		&internalSettings,
 		backlight_intensity
+};
+/* submenu for settings */
+const menu_item_t about = {
+		"About",
+		0,
+		{NULL},
+		&internalSettings,
+		information
 };
 
 

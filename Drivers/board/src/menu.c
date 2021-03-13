@@ -13,14 +13,21 @@
 
 menu_item_t *ActualMenu;
 Compare_t menu_compare;
-int8_t position = 0, position_x = 0;
-static uint8_t temp_index = 0;
+int8_t position, position_x;
+static uint8_t temp_index;
+static uint8_t last_temp_index;
+uint16_t backlite_value = LCD_BACKLITE_DUTY;
 
-int32_t set_temperature = 2000;
+int16_t set_temperature = 2000;
 RTC_TimeTypeDef set_stimestructureget;
 RTC_HandleTypeDef set_RtcHandle;
 RTC_DateTypeDef set_datestruct;
-
+/**
+ * @brief Tato funkce se vzdy spousti pred aktivaci MENU
+ * 			zde se tedy vse pripravi pro dalsi funkcnost.
+ * 
+ * @return uint8_t jestli probehla inicializace vporadku.
+ */
 uint8_t activation_memu()
 {
 	menu_compare.overflow = actual_HALtick.overflow;
@@ -28,6 +35,8 @@ uint8_t activation_memu()
 	position = 0;
 	position_x = 0;
 	en_count = 0;
+	temp_index = 0;
+	last_temp_index = temp_index;
 	ActualMenu = &MainMenu;
 	flags.menu_activate = 0;
 	flags.menu_running = 1;
@@ -80,7 +89,8 @@ uint8_t menu_action()
 		} //if COUNTER!=0
 
 		if (pushed_button == BUT_ENC)
-		{ // co se bude dit po stisknuti tlactika???
+		{							  // co se bude dit po stisknuti tlactika???
+			flags.enc_changed = TRUE; // jenom pomoc aby se zobrazila sipka vzdy...
 			if (position > (ActualMenu->numberOfChoices - 1))
 			{									// probably the end of the choices - back / exit
 				if (ActualMenu->upmenu == NULL) // in main manu - exit
@@ -108,6 +118,13 @@ uint8_t menu_action()
 					position_x = 0;
 					break;
 				} // end case date
+
+				case (backlight_intensity):
+				{
+					backlite_value = PWM_duty_read(LCD_LIGHT);
+					break;
+				}
+
 				} // end SWITCH
 			}
 			lcd_clear();
@@ -238,10 +255,25 @@ uint8_t menu_action()
 			}
 
 			if (position_x == 1)
-				temp_auto.status[temp_index].state += en_count;
+			{
+				if (FALSE == temp_auto.status[temp_index].valid_timer)
+					position_x = 5;
+				else
+					temp_auto.status[temp_index].state += en_count;
+			}
 
 			if (position_x == 2)
 			{
+				if (TRUE == temp_auto.status[temp_index].state) // pokud se ma topit
+				{
+					if (temp_auto.tempOn[temp_index] < 1800)			// a pokud je nastavena hodnota na teplotu mensi nez 18C
+						temp_auto.tempOn[temp_index] = temperature_set; // prednastav tam 20 C
+				}
+				else
+				{
+					temp_auto.tempOn[temp_index] = 0;
+				}
+
 				if (temp_auto.time_s[temp_index].hours + en_count < 0)
 					temp_auto.time_s[temp_index].hours = temp_auto.time_s[temp_index].hours + 24 + en_count;
 				else
@@ -263,15 +295,45 @@ uint8_t menu_action()
 					temp_auto.time_s[temp_index].minutes -= 60;
 			}
 			if (position_x == 4)
-			{ // last click with encoder
-				position_x = 0;
-				flags.menu_running = 0;
-				flags.temp_new_set = TRUE; // naznaceni nove nastavene temploty
-				flags.heating_up = TRUE;   // if the button was pushed, turn-on the heater, even if the temperature is reached.
-				lcd_clear();
-				return 0; //exit menu
+			{
+				if (FALSE == temp_auto.status[temp_index].state) // kdyz je stav VYPNI
+				{
+					position_x = 5;
+				}
+				else
+				{
+
+					temp_auto.tempOn[temp_index] = temp_auto.tempOn[temp_index] + en_count * 50;
+					if (temp_auto.tempOn[temp_index] > TEMPERATURE_MAX) // if the chosen temperature is higher than maximum allowed temperature
+					{
+						temp_auto.tempOn[temp_index] = TEMPERATURE_MAX;
+					}
+					if (temp_auto.tempOn[temp_index] < TEMPERATURE_MIN) // if the chosen temperature is lower than minimum allowed temperature
+					{
+						temp_auto.tempOn[temp_index] = TEMPERATURE_MIN;
+					}
+				}
 			}
-			if (position_x > 4)
+			if (position_x == 5)
+			{
+				temp_index++;
+				if (temp_index >= AUTO_TIMERS)
+				{
+					// last click with encoder
+					position_x = 0;
+					flags.menu_running = 0;
+					flags.temp_new_set = TRUE; // naznaceni nove nastavene temploty
+					flags.heating_up = TRUE;   // if the button was pushed, turn-on the heater, even if the temperature is reached.
+					lcd_clear();
+					return 0; //exit menu
+				}
+				else
+				{
+					position_x = 0;
+					lcd_clear();
+				}
+			}
+			if (position_x > 5)
 				position_x = 0;
 
 			en_count = 0;
@@ -466,11 +528,45 @@ void display_menu(menu_item_t *display_menu)
 				snprintf(buffer_menu, 18, "funkcni:  %3s", temp_auto.status[temp_index].valid_timer ? "ANO" : "NE");
 				lcd_printString(buffer_menu);
 				lcd_setCharPos(2, 0);
-				snprintf(buffer_menu, 18, "stav:     %3s", temp_auto.status[temp_index].state ? "ON" : "OFF");
+				snprintf(buffer_menu, 18, "stav:   %5s", temp_auto.status[temp_index].state ? "Zapni" : "Vypni");
 				lcd_printString(buffer_menu);
 				lcd_setCharPos(3, 0);
-				snprintf(buffer_menu, 18, "cas:   %02d:%02d", temp_auto.time_s[temp_index].hours, temp_auto.time_s[temp_index].minutes);
+				snprintf(buffer_menu, 18, "cas:    %02d:%02d", temp_auto.time_s[temp_index].hours, temp_auto.time_s[temp_index].minutes);
 				lcd_printString(buffer_menu);
+				lcd_setCharPos(4, 0);
+				snprintf(buffer_menu, 18, "temp:  %3ld.%02ld C ", temp_auto.tempOn[temp_index] / 100, abs(temp_auto.tempOn[temp_index] % 100));
+				lcd_printString(buffer_menu);
+				lcd_setCharPos(0, 15);
+				snprintf(buffer_menu, 8, "ID: %2u", temp_index + 1);
+				lcd_printString(buffer_menu);
+
+				if (last_temp_index != temp_index) // pokud nastala zmena - dalsi nastaveni pameti
+				// Prekreslit caru - znaceni zapnuti a vypnut doby 120/24 = 5tecek na hodinu
+				{ //    Log_memory_fullness() * LCD_WIDTH / LOG_DATA_LENGTH
+					/* PRIDAT For cyklus, co projede casy a stavy casovace 
+prepocitat cas na minuty -> vydelit je tak, aby z toho vyslo kolik z krivky zabere.
+*/
+					uint16_t casMinunty[AUTO_TIMERS]; //MINUT_DEN
+
+					for (uint8_t index = 0; index < AUTO_TIMERS)
+					{
+						if (temp_auto.status[index].valid_timer)
+							casMinunty[index] = temp_auto.time_s[index].hours * 60 + temp_auto.time_s[index].minutes;
+						else
+							casMinunty[index] = 0;
+					}
+/*
+ted je potreba vytvorit promenou typu Mode_auto_s 
+do te seradit podle velikosti vsechna data
+
+na zaver vse vykreslit
+
+*/
+					line(4, 49, (LCD_WIDTH - 4), 49, 1); //stav ZAPNUTP
+					line(4, 55, (LCD_WIDTH - 4), 55, 1); //stav VYPNUTO
+
+					last_temp_index = temp_index;
+				}
 			}
 			else
 			{
@@ -502,7 +598,7 @@ void display_menu(menu_item_t *display_menu)
 				}
 				if (pushed_button == BUT_ENC)
 				{ // BUTTONE PUSHED
-					temperature_set = set_temperature;
+					temperature_set = (int32_t)set_temperature;
 					//			show = desktop;
 					flags.temp_new_set = TRUE;
 					flags.heating_up = TRUE; // if the button was pushed, turn-on the heater, even if the temperature is reached.
@@ -531,15 +627,13 @@ void display_menu(menu_item_t *display_menu)
 
 		case (backlight_intensity): // intenzita podsviceni
 		{
-
-			uint16_t backlite_duty = PWM_duty_read(LCD_LIGHT);
 			if (en_count != 0)
 			{
-				PWM_duty_change(LCD_LIGHT, backlite_duty + en_count);
+				PWM_duty_change(LCD_LIGHT, PWM_duty_read(LCD_LIGHT) + en_count);
 				en_count = 0;
 			}
 			lcd_setCharPos(1, 0);
-			lcd_printString("  Nastaveni Intezity\r");
+			lcd_printString(" Nastaveni podsviceni\r");
 			lcd_printString("\r");
 			char_magnitude(2);
 			snprintf(buffer_menu, 10, " %3u", PWM_duty_read(LCD_LIGHT));
