@@ -61,6 +61,9 @@ void backlite_init(void)
 {
 	PWM_start(LCD_LIGHT);
 	PWM_duty_change(LCD_LIGHT, LCD_BACKLITE_DUTY);
+	PWM_start(LED1);
+	PWM_duty_change(LED1, LCD_BACKLITE_DUTY);
+	PWM_stop(LED1);
 }
 
 void backliteOn(void)

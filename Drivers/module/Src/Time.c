@@ -1,15 +1,23 @@
-/*
- * Time.c
- *
+/** @file Time.c
+ *  @brief Casovac.
  *  Created on: Feb 5, 2017
- *      Author: jakub
+ * 
+ * Driver pracuje s HAL knihovnami. Jdou zde funkce pro hlidani delky cyklu,
+ * casovani atd.
+ *  @author Jakub S
+ *  @bug No know bugs.
  */
 
 #include "tim.h"
 #include "global.h"
 #include "rtc.h"
 #include <Time.h>
-
+/**
+ * @brief Get the actual HAL tick object
+ * 
+ * ziskani aktualniho cisla od system ticku - cas ktery bezi stale na pozadi
+ * 
+ */
 void get_actual_HAL_tick(void)
 {
 	actual_HALtick.tick = HAL_GetTick();
@@ -26,9 +34,14 @@ void get_actual_HAL_tick(void)
 }
 
 /**
+ * @brief nastaveni casoveho bodu dle periody
+ * 
  * Input - number with specific time wait - in MILISECOND
- *
- *  */
+ * 
+ * @param periode cas v milisekundach, ktery se bude cekat; nastavi se casovac odted
+ * @param comparer_struct struktura, do ktere se zapisuje vysledna hodnota, kdy vyprsi nacasovani
+ * @return uint8_t navratova hodnota, zda vse probehlo v poradku
+ */
 uint8_t fill_comparer(uint32_t periode, Compare_t *comparer_struct)
 {
 
@@ -56,12 +69,12 @@ uint8_t fill_comparer_seconds(uint16_t periode, Compare_t *comparer_struct)
 	return (1);
 }
 
-/* This function detect if the comparer value was reached by the HAL ticks
- *  @return value: 
- * 				TRUE - time is end
- * 				FALSE - time is not elapsed 
+/**
+ * @brief  This function detect if the comparer value was reached by the HAL ticks
+ * 
+ * @param comparer_struct 
+ * @return TRUE - time is end; FALSE - time is not elapsed 
  */
-
 Bool comparer_timeout(Compare_t *comparer_struct)
 {
 	if (comparer_struct->tick <= actual_HALtick.tick)
@@ -91,12 +104,12 @@ Bool timer_value(uint16_t timer_index)
 	return timer_val;
 }
 
-/* 
+/**
  * @brief Tato funkce zpocita cas do vyprseni daneho casu 
- * 
- * @return value:  zbyvajici cas v [s] 
+ * @note funkce nepocita s tim, ze by neco mohlo trvat vice jak 2^32 milisekund! Pokud to bude vetsi, tak je potreba upravit funkci!
+ * @param comparer_struct 
+ * @return uint16_t  zbyvajici cas v [s] ; 
  */
-
 uint16_t end_of_timeout(Compare_t *comparer_struct)
 {
 	uint16_t timeToEnd = 0;
@@ -107,8 +120,8 @@ uint16_t end_of_timeout(Compare_t *comparer_struct)
 			timeToEnd = 0;
 		}
 		else
-		{	// pocita se s tim, ze casovac jednou pretekl a tudis je to obracene.
-			timeToEnd = (comparer_struct->tick - actual_HALtick.tick)/1000;
+		{ // pocita se s tim, ze casovac jednou pretekl a tudis je to obracene.
+			timeToEnd = (comparer_struct->tick - actual_HALtick.tick) / 1000;
 		}
 	}
 	else // jeste cas neubehl
@@ -117,8 +130,22 @@ uint16_t end_of_timeout(Compare_t *comparer_struct)
 			timeToEnd = 0;
 		else
 		{
-			timeToEnd = (comparer_struct->tick - actual_HALtick.tick)/1000;
+			timeToEnd = (comparer_struct->tick - actual_HALtick.tick) / 1000;
 		}
 	}
 	return (timeToEnd);
 }
+
+/**
+ * @brief Inicializace automatickeho modu - nastavovaciho casovace
+ * 			vymaze priznaky, ze je validni nastaveni casovace
+ * 
+ * @param actual_auto 
+ */
+void init_auto_mode(Mode_auto_s *actual_auto)
+{
+	for (uint8_t index = 0; index < AUTO_TIMERS; index++){
+		actual_auto->status[index].valid_timer = FALSE;
+	}
+}
+

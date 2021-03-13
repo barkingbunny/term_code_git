@@ -76,6 +76,8 @@
 
 static States_loop current_state;
 static Screen show;
+Heating_mode heat_mode;
+Mode_auto_s temp_auto; // struktura pro automaticky rezim
 Flags_main flags;
 uint32_t citac = 0;
 int8_t en_count = 0;
@@ -173,7 +175,6 @@ int main(void)
 	lcd_printString("termostat_git\r");
 	snprintf(buffer_s, 11, "SW v 0.%d", SW_VERSION);
 	lcd_printString(buffer_s);
-		
 
 	HAL_TIM_Encoder_Start(&htim22, TIM_CHANNEL_1);
 
@@ -181,6 +182,14 @@ int main(void)
 	htim22.Instance->CR1 = 1; // Enable the counter
 
 	BME280_init(&hi2c1, DEFAULT_SLAVE_ADDRESS); // initialization of temp/humid sensor BOSH
+
+#ifdef DEBUG_TERMOSTAT //debug
+
+	lcd_setCharPos(6, 0);
+	snprintf(buffer_s, 18, "stav:  %3s  %u", temp_auto.status[0].state ? "ON" : "OFF",temp_auto.status[0].state);
+	lcd_printString(buffer_s);
+	
+#endif
 
 	HAL_Delay(1500);
 	lcd_clear();
@@ -200,6 +209,8 @@ int main(void)
 	fill_comparer(BUT_DELAY, &button_compare);
 	fill_comparer(10, &heating_compare);		 // check it immediately
 	fill_comparer_seconds(30, &logging_compare); // chci zapisovat hned po zmereni hodnot / ZAPNUTI
+
+	init_auto_mode(&temp_auto); // inicializace automatickeho temperovani - nulovani
 
 	show_timeout.tick = 0xfffffffe;
 	heating_instant_timeout.tick = 0;
@@ -291,7 +302,7 @@ int main(void)
 							turnOnHeater(temperature);
 						}
 					}
-				} // end-if (flags.regulation_temp&(temperature < temperature_set))
+				} // end-if
 
 				else // vypni topeni
 				{
@@ -350,13 +361,26 @@ int main(void)
 
 				// Marking - heating is active/not active
 				lcd_setCharPos(1, 19);
-				if (!flags.regulation_temp)
+				switch (heat_mode)
+				{
+				case OFF:
 					lcd_printString("-");
-				else
+					break;
+				case ON:
 					_putc(0x07f);
-				if (flags.heating_instant_req){
+					break;
+				case AUTO:
+					lcd_printString("A");
+					break;
+				default:
+					lcd_printString("E"); //ERROR dostal jsem se mimo definovanou skupinu
+					break;
+				}
+
+				if (flags.heating_instant_req)
+				{
 					flags.heating_instant_req = FALSE;
-					if (!flags.heating_instant) 
+					if (!flags.heating_instant)
 					{
 						lcd_setCharPos(4, 19);
 						lcd_printString(" ");
@@ -364,16 +388,20 @@ int main(void)
 						lcd_setCharPos(6, 15);
 						snprintf(buffer_s, 8, "        ");
 						lcd_printString(buffer_s);
-					}}
+					}
+				}
 
 				// END Marking - heating is active/not active
 
 				char_magnitude(1);
-
 				lcd_setCharPos(3, 2);
 				snprintf(buffer_s, 12, "set %3ld.%02d C", temperature_set / 100, abs(temperature_set % 100));
 				lcd_printString(buffer_s);
-
+#ifdef DEBUG_TERMOSTAT //debug
+				lcd_setCharPos(7, 2);
+				snprintf(buffer_s, 15, "temp %ld", temperature);
+				lcd_printString(buffer_s);
+#endif
 				/*	lcd_setCharPos(6,4);
   					snprintf(buffer_s, 18, "Pres %d.%02d hp",presure/100,presure%100);
   					lcd_printString(buffer_s);
@@ -564,7 +592,7 @@ int main(void)
 		if (pushed_button != BUT_NONE) // any button pushed?
 		{
 			backliteOn();
-			fill_comparer(BUT_DELAY * 150, &button_compare); // 200x - zpozdeni cteni pri stisknuti
+			fill_comparer(BUT_DELAY * 300, &button_compare); // 200x - zpozdeni cteni pri stisknuti
 			fill_comparer(BACKLITE_TIMEOUT, &backlite_compare);
 			fill_comparer(SHOW_TIMEOUT, &show_timeout);
 			// neco se zmenilo uzivatel - prekreslit cely displej
@@ -576,7 +604,12 @@ int main(void)
 		{
 		case BUT_1:
 		{ // activate heater
-			if (!flags.regulation_temp)
+
+			heat_mode++;	   // cyklovani modu pro termostat
+			if (heat_mode > 2) // mam zde jen tri polozky, takze pri preteceni se musi dostat zpet na OFF
+				heat_mode = OFF;
+
+			if (OFF != heat_mode)
 			{
 				flags.regulation_temp = TRUE;
 				flags.heating_up = TRUE;
@@ -585,7 +618,7 @@ int main(void)
 			{
 				flags.regulation_temp = FALSE;
 			}
-			
+
 			//	show = debug;
 
 			break;
@@ -596,7 +629,8 @@ int main(void)
 			flags.heating_instant = TRUE;
 			flags.heating_instant_req = TRUE;
 			heat_instant++;
-			if (6 < heat_instant){
+			if (6 < heat_instant)
+			{
 				flags.heating_instant = FALSE;
 				heat_instant = 0;
 			}
@@ -634,7 +668,7 @@ int main(void)
 		} // switch pushed button
 
 		HAL_Delay(MAIN_LOOP);
-		
+
 #ifdef DEBUG_TERMOSTAT
 		debug_led_heartbeat();
 #endif

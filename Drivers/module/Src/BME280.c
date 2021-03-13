@@ -82,7 +82,11 @@ void BME280_initialize()
  
 
 }
- 
+ /**
+  * @brief vraci namerenou teplotu
+  * 
+  * @return uint32_t 
+  */
 uint32_t BME280_getTemperature()
 {
     uint32_t temp_raw;

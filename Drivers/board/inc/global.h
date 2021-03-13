@@ -10,7 +10,7 @@
 
 #include "stm32l0xx_hal.h"
 
-#define SW_VERSION 269 //verze softwaru
+#define SW_VERSION 271 //verze softwaru
 
 //NASTAVENI:
 #define DEBUG_TERMOSTAT 		// debug of the code is turned OFF
@@ -33,6 +33,7 @@
 #define LED_PERIODE 500 //
 #define TIME_PERIODE 400 // ms definition of periode for checking time change (RTC change )
 #define HEATING_PERIODE 1000 // every 5 minute check for change - turn on / off heater
+#define AUTO_TIMERS 6 // pocet casovych sekci pro nastavovani automatickeho topeni
 
 #define LOG_PERIODE 600 // in seconds - every 10 minute LOG
 
@@ -45,7 +46,7 @@
 #define HEATING_HYSTERESIS 50 // hysteresis is 0.5 deg C ( X/50)
 
 #define TEMPERATURE_MAX 3000 // 30.00C maximum temperature, when this limit is reached, the radiator will stop.
-#define TEMPERATURE_MIN -1000 //-10.00C maximum temperature, when this limit is reached, the radiator will stop.
+#define TEMPERATURE_MIN -100 //-1.00C minimum temperature, when this limit is reached, the radiator will stop.
 
 // INTITIAL STATE values for PWM
 #define LCD_BACKLITE_DUTY 50
@@ -93,6 +94,16 @@ typedef struct {
 	uint8_t log_requsition:1;
 
 }Flags_main;
+
+/**
+ * @brief definice stavu pro mody kdy v kterych muze byt termostat
+ * 
+ */
+typedef enum  	{
+	OFF,  	// vypnuto, topeni nezmi bezet!
+	ON,		// zapnuto topeni, bez casovace
+	AUTO	// zapnut termostat, jede se dle casoveho planu
+} Heating_mode;
 
 extern Flags_main flags;
 

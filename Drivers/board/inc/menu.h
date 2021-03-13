@@ -18,6 +18,7 @@
 #include "log.h"
 #include "usb_api.h"
 #include "pwm.h"
+#include "Time.h"
 
 
 #define MAX_MENU_ITEM 5
@@ -50,6 +51,9 @@ extern int32_t temperature_set;
 extern Buttons pushed_button;
 extern int8_t en_count;
 extern int32_t temperature;
+extern Mode_auto_s temp_auto;
+extern Heating_mode heat_mode;
+
 
 uint8_t menu_action();
 void display_menu(menu_item_t* display_menu);

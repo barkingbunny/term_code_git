@@ -14,7 +14,8 @@
 menu_item_t *ActualMenu;
 Compare_t menu_compare;
 int8_t position = 0, position_x = 0;
-int8_t EN_count = -1;
+static uint8_t temp_index = 0;
+
 int32_t set_temperature = 2000;
 RTC_TimeTypeDef set_stimestructureget;
 RTC_HandleTypeDef set_RtcHandle;
@@ -26,7 +27,6 @@ uint8_t activation_memu()
 	fill_comparer(MENU_TIMOUT, &menu_compare);
 	position = 0;
 	position_x = 0;
-	EN_count = -1;
 	en_count = 0;
 	ActualMenu = &MainMenu;
 	flags.menu_activate = 0;
@@ -125,35 +125,35 @@ uint8_t menu_action()
 		if (position_x == 0)
 		{
 			if (set_stimestructureget.Hours + en_count < 0)
-				set_stimestructureget.Hours = set_stimestructureget.Hours + 23 + en_count;
+				set_stimestructureget.Hours = set_stimestructureget.Hours + 24 + en_count;
 			else
 			{
 				set_stimestructureget.Hours = set_stimestructureget.Hours + en_count;
 			}
 			if (set_stimestructureget.Hours > 23)
-				set_stimestructureget.Hours -= 23;
+				set_stimestructureget.Hours -= 24;
 		}
 		if (position_x == 1)
 		{
 			if (set_stimestructureget.Minutes + en_count < 0)
-				set_stimestructureget.Minutes = set_stimestructureget.Minutes + 59 + en_count;
+				set_stimestructureget.Minutes = set_stimestructureget.Minutes + 60 + en_count;
 			else
 			{
 				set_stimestructureget.Minutes = set_stimestructureget.Minutes + en_count;
 			}
 			if (set_stimestructureget.Minutes > 59)
-				set_stimestructureget.Minutes -= 59;
+				set_stimestructureget.Minutes -= 60;
 		}
 		if (position_x == 2)
 		{
 			if (set_stimestructureget.Seconds + en_count < 0)
-				set_stimestructureget.Seconds = set_stimestructureget.Seconds + 59 + en_count;
+				set_stimestructureget.Seconds = set_stimestructureget.Seconds + 60 + en_count;
 			else
 			{
 				set_stimestructureget.Seconds = set_stimestructureget.Seconds + en_count;
 			}
 			if (set_stimestructureget.Seconds > 59)
-				set_stimestructureget.Seconds -= 59;
+				set_stimestructureget.Seconds -= 60;
 		}
 		if (position_x == 3)
 		{ // last click with encoder
@@ -179,13 +179,13 @@ uint8_t menu_action()
 		if (position_x == 0)
 		{
 			if (set_datestruct.Year + en_count < 1)
-				set_datestruct.Year = set_datestruct.Year + 99 + en_count;
+				set_datestruct.Year = set_datestruct.Year + 100 + en_count;
 			else
 			{
 				set_datestruct.Year = set_datestruct.Year + en_count;
 			}
 			if (set_datestruct.Year > 99)
-				set_datestruct.Year -= 99;
+				set_datestruct.Year -= 100;
 		}
 		if (position_x == 1)
 		{
@@ -226,7 +226,56 @@ uint8_t menu_action()
 
 	case (setTemperature):
 	{
+		if (AUTO == heat_mode)
+		{
+			if (pushed_button == BUT_ENC)
+			{
+				position_x++;
+			}
+			if (position_x == 0)
+			{
+				temp_auto.status[temp_index].valid_timer += en_count;
+			}
 
+			if (position_x == 1)
+				temp_auto.status[temp_index].state += en_count;
+
+			if (position_x == 2)
+			{
+				if (temp_auto.time_s[temp_index].hours + en_count < 0)
+					temp_auto.time_s[temp_index].hours = temp_auto.time_s[temp_index].hours + 24 + en_count;
+				else
+				{
+					temp_auto.time_s[temp_index].hours = temp_auto.time_s[temp_index].hours + en_count;
+				}
+				if (temp_auto.time_s[temp_index].hours > 23)
+					temp_auto.time_s[temp_index].hours -= 24;
+			}
+			if (position_x == 3)
+			{
+				if (temp_auto.time_s[temp_index].minutes + en_count < 0)
+					temp_auto.time_s[temp_index].minutes = temp_auto.time_s[temp_index].minutes + 60 + en_count;
+				else
+				{
+					temp_auto.time_s[temp_index].minutes = temp_auto.time_s[temp_index].minutes + en_count;
+				}
+				if (temp_auto.time_s[temp_index].minutes > 59)
+					temp_auto.time_s[temp_index].minutes -= 60;
+			}
+			if (position_x == 4)
+			{ // last click with encoder
+				position_x = 0;
+				flags.menu_running = 0;
+				flags.temp_new_set = TRUE; // naznaceni nove nastavene temploty
+				flags.heating_up = TRUE;   // if the button was pushed, turn-on the heater, even if the temperature is reached.
+				lcd_clear();
+				return 0; //exit menu
+			}
+			if (position_x > 4)
+				position_x = 0;
+
+			en_count = 0;
+		}
 		break;
 	}
 	case (printLogUSB): //BLOKOVACI
@@ -411,50 +460,59 @@ void display_menu(menu_item_t *display_menu)
 		}
 		case (setTemperature):
 		{
-
-			if (!flags.temp_new_set)
+			if ((AUTO == heat_mode)) // pouze vypisovaci konzole
 			{
-				{
-					// writen of actual temp
-					//				lcd_setCharPos(1,4);
-					//				char_magnitude(2);
-					//				snprintf(buffer_menu, 12, "%d.%02d C",temperature/100,temperature%100);
-					//				lcd_printString(buffer_menu);
-
-					lcd_setCharPos(3, 0);
-					char_magnitude(1);
-					snprintf(buffer_menu, 16, "Set temperature");
-					lcd_printString(buffer_menu);
-
-					set_temperature = temperature_set + en_count * 50;
-					if (set_temperature > TEMPERATURE_MAX) // if the chosen temperature is higher than maximum allowed temperature
-					{
-						set_temperature = TEMPERATURE_MAX;
-						en_count = (set_temperature - temperature_set) / 50; // calculate how much it should be at temp max
-					}
-					if (set_temperature < TEMPERATURE_MIN) // if the chosen temperature is lower than minimum allowed temperature
-					{
-						set_temperature = TEMPERATURE_MIN;
-						en_count = (set_temperature - temperature_set) / 50;
-					}
-					lcd_setCharPos(5, 3);
-					char_magnitude(2);
-					snprintf(buffer_menu, 12, "%3ld.%02ld C ", set_temperature / 100, abs(set_temperature % 100));
-					lcd_printString(buffer_menu);
-					char_magnitude(1);
-				}
+				lcd_setCharPos(1, 0);
+				snprintf(buffer_menu, 18, "funkcni:  %3s", temp_auto.status[temp_index].valid_timer ? "ANO" : "NE");
+				lcd_printString(buffer_menu);
+				lcd_setCharPos(2, 0);
+				snprintf(buffer_menu, 18, "stav:     %3s", temp_auto.status[temp_index].state ? "ON" : "OFF");
+				lcd_printString(buffer_menu);
+				lcd_setCharPos(3, 0);
+				snprintf(buffer_menu, 18, "cas:   %02d:%02d", temp_auto.time_s[temp_index].hours, temp_auto.time_s[temp_index].minutes);
+				lcd_printString(buffer_menu);
 			}
-			if (pushed_button == BUT_ENC)
-			{ // BUTTONE PUSHED
-				temperature_set = set_temperature;
-				//			show = desktop;
-				flags.temp_new_set = TRUE;
-				flags.heating_up = TRUE; // if the button was pushed, turn-on the heater, even if the temperature is reached.
+			else
+			{
+				if (!flags.temp_new_set)
+				{
+					{
+						lcd_setCharPos(3, 0);
+						char_magnitude(1);
+						snprintf(buffer_menu, 16, "Set temperature");
+						lcd_printString(buffer_menu);
 
-				// end of the Menu
-				flags.menu_running = 0;
-				lcd_clear();
-			} // end of BUTTONE PUSHED
+						set_temperature = temperature_set + en_count * 50;
+						if (set_temperature > TEMPERATURE_MAX) // if the chosen temperature is higher than maximum allowed temperature
+						{
+							set_temperature = TEMPERATURE_MAX;
+							en_count = (set_temperature - temperature_set) / 50; // calculate how much it should be at temp max
+						}
+						if (set_temperature < TEMPERATURE_MIN) // if the chosen temperature is lower than minimum allowed temperature
+						{
+							set_temperature = TEMPERATURE_MIN;
+							en_count = (set_temperature - temperature_set) / 50;
+						}
+						lcd_setCharPos(5, 3);
+						char_magnitude(2);
+						snprintf(buffer_menu, 12, "%3ld.%02ld C ", set_temperature / 100, abs(set_temperature % 100));
+						lcd_printString(buffer_menu);
+						char_magnitude(1);
+					}
+				}
+				if (pushed_button == BUT_ENC)
+				{ // BUTTONE PUSHED
+					temperature_set = set_temperature;
+					//			show = desktop;
+					flags.temp_new_set = TRUE;
+					flags.heating_up = TRUE; // if the button was pushed, turn-on the heater, even if the temperature is reached.
+
+					// end of the Menu
+					flags.menu_running = 0;
+					lcd_clear();
+				} // end of BUTTONE PUSHED
+			}
+
 			break;
 		}
 
@@ -474,9 +532,9 @@ void display_menu(menu_item_t *display_menu)
 		case (backlight_intensity): // intenzita podsviceni
 		{
 
-			
 			uint16_t backlite_duty = PWM_duty_read(LCD_LIGHT);
-			if (en_count != 0){
+			if (en_count != 0)
+			{
 				PWM_duty_change(LCD_LIGHT, backlite_duty + en_count);
 				en_count = 0;
 			}

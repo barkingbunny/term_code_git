@@ -13,13 +13,39 @@ typedef struct {
 	uint8_t overflow:1;
 }Compare_t;
 
+typedef struct {
+	uint8_t valid_timer:1; // false ->  timer dissabled
+	uint8_t state:1; //OFF = false -> 0, ON = TRUE -> 1u
+	uint8_t reserved:1;
+	
+	
+}Flags_mode_s;
+
+typedef struct {
+	uint8_t hours; 	// hodiny 0 - 255
+	uint8_t minutes; // minuty 0- 255
+}Time_short_s;
+
+/**
+ * @brief struktura pro definici automatickeho - casoveho nastavovani termostatu
+ * 
+ */
+typedef struct {
+	uint16_t On; // hodnota na kterou se zapne
+	uint16_t Off; // honota na kterou se vypne
+	uint16_t housekeep; // hodnota pro standby rezim
+	Time_short_s time_s[AUTO_TIMERS]; 	// casy pro zmenu
+	Flags_mode_s status[AUTO_TIMERS]; 	// statusy pro kazdy timer
+
+}Mode_auto_s;
+
 /**
  * Bude potreba promena, kde bude ulozen cely denni progam.
  *
  * Uint8_t program [24][4]    24 - hodin - 4 do hodiny
  * promena: 0 - vypni
  * 			1 - zapni
- *
+ *	
  * fan		100-200 - procentualni zapnuti (0 - 100%) // ventilator
  * heat		100 - 200 0 = 0degC, 1 = 0.5degC .... 10 = 5degC; 40 = 20degC ; 45 = 22.5degC.
  *
@@ -34,6 +60,8 @@ Bool comparer_timeout(Compare_t* comparer_struct);
 /*Function as timer evalution - there is checking if the heater shall be ON or OFF */
 Bool timer_value(uint16_t timer_index);
 uint16_t end_of_timeout(Compare_t *comparer_struct);
+
+void init_auto_mode(Mode_auto_s *actual_auto);
 
 
 #endif /* MODULE_TIME_H_ */
