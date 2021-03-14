@@ -201,7 +201,7 @@ int main(void)
 	flags.log_enable = TRUE; // logging of the actions
 
 	hrej();
-	//init timers
+	//Init of timers
 	fill_comparer(LED_PERIODE, &led_compare);
 	fill_comparer(MEASURE_PERIODE, &measure_compare);
 	fill_comparer(TIME_PERIODE, &time_compare);

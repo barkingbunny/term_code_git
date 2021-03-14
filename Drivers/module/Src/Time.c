@@ -144,8 +144,40 @@ uint16_t end_of_timeout(Compare_t *comparer_struct)
  */
 void init_auto_mode(Mode_auto_s *actual_auto)
 {
-	for (uint8_t index = 0; index < AUTO_TIMERS; index++){
+	for (uint8_t index = 0; index < AUTO_TIMERS; index++)
+	{
 		actual_auto->status[index].valid_timer = FALSE;
+		actual_auto->sortIndex[index] = index;
 	}
 }
 
+/**
+ * @brief Serazeni pozadavku na zapnuti/vypnuti , dle casove osy
+ * vysledek se ulozi v poli, po sobe jdoucih indexu, jak jdou casove posloupne
+ * 
+ * @param actual_auto 
+ */
+void sort_auto_mode(Mode_auto_s *actual_auto)
+{
+	uint16_t timeSorterMinute[AUTO_TIMERS];
+	uint8_t buffer;
+	for (uint8_t index = 0; index < AUTO_TIMERS; index++)
+	{
+		if (actual_auto->status[index].valid_timer)
+			timeSorterMinute[index] = actual_auto->time_s[index].hours * 60 + actual_auto->time_s[index].minutes;
+		else
+			timeSorterMinute[index] = 65535; // toto oznacuje kdyz je vypnuty casovac.
+	}
+	for (uint8_t index_a = 0; index_a < (AUTO_TIMERS - 1); index_a++)
+	{
+		for (uint8_t index_b = 0; index_b < (AUTO_TIMERS - 1); index_b++)
+		{
+			if (timeSorterMinute[actual_auto->sortIndex[index_b]] > timeSorterMinute[actual_auto->sortIndex[index_b + 1]])
+			{
+				buffer = actual_auto->sortIndex[index_b + 1];
+				actual_auto->sortIndex[index_b + 1] = actual_auto->sortIndex[index_b];
+				actual_auto->sortIndex[index_b] = buffer;
+			}
+		}
+	}
+}

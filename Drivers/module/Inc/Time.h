@@ -37,6 +37,7 @@ typedef struct {
 	uint16_t housekeep; // hodnota pro standby rezim
 	Time_short_s time_s[AUTO_TIMERS]; 	// casy pro zmenu
 	Flags_mode_s status[AUTO_TIMERS]; 	// statusy pro kazdy timer
+	uint8_t sortIndex[AUTO_TIMERS]; // promena pro seznam indexu, serazene jak jdou casove po sobe.
 
 }Mode_auto_s;
 
@@ -63,6 +64,7 @@ Bool timer_value(uint16_t timer_index);
 uint16_t end_of_timeout(Compare_t *comparer_struct);
 
 void init_auto_mode(Mode_auto_s *actual_auto);
+void sort_auto_mode(Mode_auto_s *actual_auto);
 
 
 #endif /* MODULE_TIME_H_ */

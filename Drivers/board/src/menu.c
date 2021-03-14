@@ -249,20 +249,22 @@ uint8_t menu_action()
 			{
 				position_x++;
 			}
-			if (position_x == 0)
+			switch (position_x)
+			{
+			case 0:
 			{
 				temp_auto.status[temp_index].valid_timer += en_count;
+				break;
 			}
-
-			if (position_x == 1)
+			case 1:
 			{
 				if (FALSE == temp_auto.status[temp_index].valid_timer)
 					position_x = 5;
 				else
 					temp_auto.status[temp_index].state += en_count;
+				break;
 			}
-
-			if (position_x == 2)
+			case 2:
 			{
 				if (TRUE == temp_auto.status[temp_index].state) // pokud se ma topit
 				{
@@ -282,27 +284,28 @@ uint8_t menu_action()
 				}
 				if (temp_auto.time_s[temp_index].hours > 23)
 					temp_auto.time_s[temp_index].hours -= 24;
+				break;
 			}
-			if (position_x == 3)
+			case 3:
 			{
-				if (temp_auto.time_s[temp_index].minutes + en_count < 0)
-					temp_auto.time_s[temp_index].minutes = temp_auto.time_s[temp_index].minutes + 60 + en_count;
+				if (temp_auto.time_s[temp_index].minutes + en_count * 10 < 0)
+					temp_auto.time_s[temp_index].minutes = temp_auto.time_s[temp_index].minutes + 60 + en_count * 10;
 				else
 				{
-					temp_auto.time_s[temp_index].minutes = temp_auto.time_s[temp_index].minutes + en_count;
+					temp_auto.time_s[temp_index].minutes = temp_auto.time_s[temp_index].minutes + en_count * 10;
 				}
 				if (temp_auto.time_s[temp_index].minutes > 59)
 					temp_auto.time_s[temp_index].minutes -= 60;
+				break;
 			}
-			if (position_x == 4)
+			case 4:
 			{
-				if (FALSE == temp_auto.status[temp_index].state) // kdyz je stav VYPNI
+				if (FALSE == temp_auto.status[temp_index].state) // kdyz je stav VYPNI, neni potreba nastavovat teplotu.
 				{
 					position_x = 5;
 				}
 				else
 				{
-
 					temp_auto.tempOn[temp_index] = temp_auto.tempOn[temp_index] + en_count * 50;
 					if (temp_auto.tempOn[temp_index] > TEMPERATURE_MAX) // if the chosen temperature is higher than maximum allowed temperature
 					{
@@ -313,12 +316,27 @@ uint8_t menu_action()
 						temp_auto.tempOn[temp_index] = TEMPERATURE_MIN;
 					}
 				}
+				break;
 			}
-			if (position_x == 5)
+			case 5:
 			{
 				temp_index++;
+				sort_auto_mode(&temp_auto);
 				if (temp_index >= AUTO_TIMERS)
 				{
+					//DEBUG
+					lcd_clear();
+
+					for (uint8_t index_a = 0; index_a < (AUTO_TIMERS); index_a++)
+					{
+
+						lcd_setCharPos(index_a, 1);
+						snprintf(buffer_s, 16, "cas %02d:%02d", temp_auto.time_s[temp_auto.sortIndex[index_a]].hours, temp_auto.time_s[temp_auto.sortIndex[index_a]].minutes);
+						lcd_printString(buffer_s);
+					}
+					HAL_Delay(3500);
+					//DEBUG
+
 					// last click with encoder
 					position_x = 0;
 					flags.menu_running = 0;
@@ -332,9 +350,13 @@ uint8_t menu_action()
 					position_x = 0;
 					lcd_clear();
 				}
+				break;
 			}
-			if (position_x > 5)
+			default:
+			{
 				position_x = 0;
+			}
+			}
 
 			en_count = 0;
 		}
@@ -527,6 +549,7 @@ void display_menu(menu_item_t *display_menu)
 				lcd_setCharPos(1, 0);
 				snprintf(buffer_menu, 18, "funkcni:  %3s", temp_auto.status[temp_index].valid_timer ? "ANO" : "NE");
 				lcd_printString(buffer_menu);
+
 				lcd_setCharPos(2, 0);
 				snprintf(buffer_menu, 18, "stav:   %5s", temp_auto.status[temp_index].state ? "Zapni" : "Vypni");
 				lcd_printString(buffer_menu);
@@ -540,33 +563,85 @@ void display_menu(menu_item_t *display_menu)
 				snprintf(buffer_menu, 8, "ID: %2u", temp_index + 1);
 				lcd_printString(buffer_menu);
 
+				/* SEM BUDU PSAT proceduru pro vygresleni GRAFU, co znazorni zap/vyp topeni v jednodenim cyklu*/
 				if (last_temp_index != temp_index) // pokud nastala zmena - dalsi nastaveni pameti
 				// Prekreslit caru - znaceni zapnuti a vypnut doby 120/24 = 5tecek na hodinu
-				{ //    Log_memory_fullness() * LCD_WIDTH / LOG_DATA_LENGTH
-					/* PRIDAT For cyklus, co projede casy a stavy casovace 
-prepocitat cas na minuty -> vydelit je tak, aby z toho vyslo kolik z krivky zabere.
-*/
+				{
 					uint16_t casMinunty[AUTO_TIMERS]; //MINUT_DEN
+					const uint16_t casMinutyMax = 1440;
+					const uint16_t lcd_usable_width = LCD_WIDTH / 24 * 24;
+					uint16_t zacatek, konec;
+					uint8_t index_next;
 
-					for (uint8_t index = 0; index < AUTO_TIMERS)
+					for (uint8_t index = 0; index < AUTO_TIMERS; index++)
 					{
-						if (temp_auto.status[index].valid_timer)
-							casMinunty[index] = temp_auto.time_s[index].hours * 60 + temp_auto.time_s[index].minutes;
+						if (temp_auto.status[temp_auto.sortIndex[index]].valid_timer)
+							casMinunty[index] = temp_auto.time_s[temp_auto.sortIndex[index]].hours * 60 + temp_auto.time_s[temp_auto.sortIndex[index]].minutes;
 						else
-							casMinunty[index] = 0;
+						{
+							casMinunty[index] = 255;
+						}
 					}
-/*
-ted je potreba vytvorit promenou typu Mode_auto_s 
-do te seradit podle velikosti vsechna data
-
-na zaver vse vykreslit
-
-*/
-					line(4, 49, (LCD_WIDTH - 4), 49, 1); //stav ZAPNUTP
-					line(4, 55, (LCD_WIDTH - 4), 55, 1); //stav VYPNUTO
+					for (uint8_t index = 0; index < AUTO_TIMERS; index++)
+					{
+						if (temp_auto.status[temp_auto.sortIndex[index]].valid_timer)
+						{
+							zacatek = casMinunty[index] * lcd_usable_width / casMinutyMax;
+							index_next = index + 1;
+							if (index_next == AUTO_TIMERS)
+								index_next = 0;
+							if (temp_auto.status[temp_auto.sortIndex[index_next]].valid_timer)
+							{
+								konec = casMinunty[index_next] * lcd_usable_width / casMinutyMax;
+							}
+							else
+							{
+								konec = lcd_usable_width;
+							}
+							if (zacatek > konec) // posledni hodnota Indexu muze mit konec az v predchozi.
+							{
+								if (TRUE == temp_auto.status[temp_auto.sortIndex[index]].state) // ZAPNI TOPENI
+								{
+									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2100) // teplota je nad 21 C
+									{
+										line((zacatek+4), 49, (lcd_usable_width+4), 49, 1); //stav ZAPNUTP
+										line((4), 49, (konec + 4), 49, 1);						//stav ZAPNUTP
+									}
+									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2000) // teplota je nad 20 C
+									{
+										line((4 + zacatek), 50, (lcd_usable_width + 4), 50, 1); //stav ZAPNUTP
+										line((4), 50, (konec + 4), 50, 1);						//stav ZAPNUTP
+									}
+									line((4 + zacatek), 50, (lcd_usable_width + 4), 51, 1); //stav ZAPNUTP
+									line((4), 50, (konec + 4), 50, 1);						//stav ZAPNUTP
+								}
+								else // prikaz pro topeni - vypnout
+								{
+									line((4 + zacatek), 55, (lcd_usable_width + 4), 55, 1); //stav ZAPNUTP
+									line((4), 55, (konec + 4), 55, 1);						//stav ZAPNUTP
+								}
+							}
+							else
+							{
+								if (TRUE == temp_auto.status[temp_auto.sortIndex[index]].state) // ZAPNI TOPENI
+								{
+									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2100)// teplota je nad 21 C
+										line((4 + zacatek), 49, (konec + 4), 49, 1); //stav ZAPNUTP
+									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2000) // teplota je nad 20 C
+										line((4 + zacatek), 50, (konec + 4), 50, 1); //stav ZAPNUTP
+									line((4 + zacatek), 51, (konec + 4), 51, 1);	 //stav ZAPNUTP
+								}
+								else // prikaz pro topeni - vypnout
+								{
+									line((zacatek + 4), 55, (konec + 4), 55, 1); //stav VYPNUTO
+								}
+							}
+						}
+					}
 
 					last_temp_index = temp_index;
-				}
+
+				} /* END OF  - SEM BUDU PSAT proceduru pro vygresleni GRAFU, co znazorni zap/vyp topeni v jednodenim cyklu*/
 			}
 			else
 			{
