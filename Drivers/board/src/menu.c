@@ -53,6 +53,8 @@ uint8_t activation_memu()
  */
 uint8_t menu_action()
 {
+
+	char buffer_menu[32];
 #ifdef DEBUG_TERMOSTAT
 	lcd_setCharPos(7, 14);
 	char buffer_s[32];
@@ -268,8 +270,8 @@ uint8_t menu_action()
 			{
 				if (TRUE == temp_auto.status[temp_index].state) // pokud se ma topit
 				{
-					if (temp_auto.tempOn[temp_index] < 1800)			// a pokud je nastavena hodnota na teplotu mensi nez 18C
-						temp_auto.tempOn[temp_index] = temperature_set; // prednastav tam 20 C
+					if (temp_auto.tempOn[temp_index] < 1800) // a pokud je nastavena hodnota na teplotu mensi nez 18C
+						temp_auto.tempOn[temp_index] = 2000; // prednastav tam 20 C
 				}
 				else
 				{
@@ -321,7 +323,7 @@ uint8_t menu_action()
 			case 5:
 			{
 				temp_index++;
-				sort_auto_mode(&temp_auto);
+				mode_auto_sort(&temp_auto);
 				if (temp_index >= AUTO_TIMERS)
 				{
 					//DEBUG
@@ -331,8 +333,8 @@ uint8_t menu_action()
 					{
 
 						lcd_setCharPos(index_a, 1);
-						snprintf(buffer_s, 16, "cas %02d:%02d", temp_auto.time_s[temp_auto.sortIndex[index_a]].hours, temp_auto.time_s[temp_auto.sortIndex[index_a]].minutes);
-						lcd_printString(buffer_s);
+						snprintf(buffer_menu, 33, "%02d:%02d;%3s;%3ld.%02ld C", temp_auto.time_s[temp_auto.sortIndex[index_a]].hours, temp_auto.time_s[temp_auto.sortIndex[index_a]].minutes, temp_auto.status[temp_auto.sortIndex[index_a]].state ? "Zap" : "Vyp", temp_auto.tempOn[temp_auto.sortIndex[index_a]] / 100, abs(temp_auto.tempOn[temp_auto.sortIndex[index_a]] % 100));
+						lcd_printString(buffer_menu);
 					}
 					HAL_Delay(3500);
 					//DEBUG
@@ -364,7 +366,6 @@ uint8_t menu_action()
 	}
 	case (printLogUSB): //BLOKOVACI
 	{
-		char buffer_menu[32];
 		uint8_t post = 0;
 		uint8_t usbTransmit = 0;
 
@@ -565,83 +566,11 @@ void display_menu(menu_item_t *display_menu)
 
 				/* SEM BUDU PSAT proceduru pro vygresleni GRAFU, co znazorni zap/vyp topeni v jednodenim cyklu*/
 				if (last_temp_index != temp_index) // pokud nastala zmena - dalsi nastaveni pameti
-				// Prekreslit caru - znaceni zapnuti a vypnut doby 120/24 = 5tecek na hodinu
 				{
-					uint16_t casMinunty[AUTO_TIMERS]; //MINUT_DEN
-					const uint16_t casMinutyMax = 1440;
-					const uint16_t lcd_usable_width = LCD_WIDTH / 24 * 24;
-					uint16_t zacatek, konec;
-					uint8_t index_next;
-
-					for (uint8_t index = 0; index < AUTO_TIMERS; index++)
-					{
-						if (temp_auto.status[temp_auto.sortIndex[index]].valid_timer)
-							casMinunty[index] = temp_auto.time_s[temp_auto.sortIndex[index]].hours * 60 + temp_auto.time_s[temp_auto.sortIndex[index]].minutes;
-						else
-						{
-							casMinunty[index] = 255;
-						}
-					}
-					for (uint8_t index = 0; index < AUTO_TIMERS; index++)
-					{
-						if (temp_auto.status[temp_auto.sortIndex[index]].valid_timer)
-						{
-							zacatek = casMinunty[index] * lcd_usable_width / casMinutyMax;
-							index_next = index + 1;
-							if (index_next == AUTO_TIMERS)
-								index_next = 0;
-							if (temp_auto.status[temp_auto.sortIndex[index_next]].valid_timer)
-							{
-								konec = casMinunty[index_next] * lcd_usable_width / casMinutyMax;
-							}
-							else
-							{
-								konec = lcd_usable_width;
-							}
-							if (zacatek > konec) // posledni hodnota Indexu muze mit konec az v predchozi.
-							{
-								if (TRUE == temp_auto.status[temp_auto.sortIndex[index]].state) // ZAPNI TOPENI
-								{
-									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2100) // teplota je nad 21 C
-									{
-										line((zacatek+4), 49, (lcd_usable_width+4), 49, 1); //stav ZAPNUTP
-										line((4), 49, (konec + 4), 49, 1);						//stav ZAPNUTP
-									}
-									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2000) // teplota je nad 20 C
-									{
-										line((4 + zacatek), 50, (lcd_usable_width + 4), 50, 1); //stav ZAPNUTP
-										line((4), 50, (konec + 4), 50, 1);						//stav ZAPNUTP
-									}
-									line((4 + zacatek), 50, (lcd_usable_width + 4), 51, 1); //stav ZAPNUTP
-									line((4), 50, (konec + 4), 50, 1);						//stav ZAPNUTP
-								}
-								else // prikaz pro topeni - vypnout
-								{
-									line((4 + zacatek), 55, (lcd_usable_width + 4), 55, 1); //stav ZAPNUTP
-									line((4), 55, (konec + 4), 55, 1);						//stav ZAPNUTP
-								}
-							}
-							else
-							{
-								if (TRUE == temp_auto.status[temp_auto.sortIndex[index]].state) // ZAPNI TOPENI
-								{
-									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2100)// teplota je nad 21 C
-										line((4 + zacatek), 49, (konec + 4), 49, 1); //stav ZAPNUTP
-									if (temp_auto.tempOn[temp_auto.sortIndex[index]] > 2000) // teplota je nad 20 C
-										line((4 + zacatek), 50, (konec + 4), 50, 1); //stav ZAPNUTP
-									line((4 + zacatek), 51, (konec + 4), 51, 1);	 //stav ZAPNUTP
-								}
-								else // prikaz pro topeni - vypnout
-								{
-									line((zacatek + 4), 55, (konec + 4), 55, 1); //stav VYPNUTO
-								}
-							}
-						}
-					}
-
+					mode_auto_graph(&temp_auto,&hrtc);
 					last_temp_index = temp_index;
-
-				} /* END OF  - SEM BUDU PSAT proceduru pro vygresleni GRAFU, co znazorni zap/vyp topeni v jednodenim cyklu*/
+				}
+				// Prekreslit caru - znaceni zapnuti a vypnut doby 120/24 = 5tecek na hodinu
 			}
 			else
 			{
@@ -653,16 +582,16 @@ void display_menu(menu_item_t *display_menu)
 						snprintf(buffer_menu, 16, "Set temperature");
 						lcd_printString(buffer_menu);
 
-						set_temperature = temperature_set + en_count * 50;
+						set_temperature = temperature_manual + en_count * 50;
 						if (set_temperature > TEMPERATURE_MAX) // if the chosen temperature is higher than maximum allowed temperature
 						{
 							set_temperature = TEMPERATURE_MAX;
-							en_count = (set_temperature - temperature_set) / 50; // calculate how much it should be at temp max
+							en_count = (set_temperature - temperature_manual) / 50; // calculate how much it should be at temp max
 						}
 						if (set_temperature < TEMPERATURE_MIN) // if the chosen temperature is lower than minimum allowed temperature
 						{
 							set_temperature = TEMPERATURE_MIN;
-							en_count = (set_temperature - temperature_set) / 50;
+							en_count = (set_temperature - temperature_manual) / 50;
 						}
 						lcd_setCharPos(5, 3);
 						char_magnitude(2);
@@ -673,8 +602,7 @@ void display_menu(menu_item_t *display_menu)
 				}
 				if (pushed_button == BUT_ENC)
 				{ // BUTTONE PUSHED
-					temperature_set = (int32_t)set_temperature;
-					//			show = desktop;
+					temperature_manual = (int32_t)set_temperature;
 					flags.temp_new_set = TRUE;
 					flags.heating_up = TRUE; // if the button was pushed, turn-on the heater, even if the temperature is reached.
 

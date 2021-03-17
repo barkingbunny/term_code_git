@@ -6,6 +6,7 @@
             "Drivers/board/src/menu.c",
             "Drivers/board/src/peripherals.c",
             "Drivers/board/src/pinmap.c",
+            "Drivers/board/src/mode-auto.c",
             "Drivers/module/Src/BME280.c",
             "Drivers/module/Src/display_buffer.c",
             "Drivers/module/Src/lcd_12864.c",

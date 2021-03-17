@@ -10,10 +10,10 @@
 
 #include "stm32l0xx_hal.h"
 
-#define SW_VERSION 273 //verze softwaru
+#define SW_VERSION 275 //verze softwaru
 
 //NASTAVENI:
-#define DEBUG_TERMOSTAT 		// debug of the code is turned OFF
+//#define DEBUG_TERMOSTAT 		// debug of the code is turned OFF
 //#define LOG_ENABLE		// zapnuti funkce logovani
 
 /**
@@ -24,7 +24,8 @@
   33904	   1072	  14592	  49568	   c1a0	termostat_git.elf   // logovani size  - RAM pamet -  0x1ff
   33904	   1072	  17152	  52128	   cba0	termostat_git.elf   // logovani size - RAM pamet - 0x2ff
   40136    1120   15624   56880    de30 build/term_code_git.elf
-  42752    1120    8040   51912    cac8 build/term_code_git.elf // pridani nastaveni casovace + grafika
+  43296    1120    8048   52464    ccf0 build/term_code_git.elf // pridani nastaveni casovace + grafika
+  
 
     text: is the size of all code in your application.
     data: is the size of initialized global variables. It counts both flash memory and RAM, as it's copied from flash to RAM during startup.
@@ -111,7 +112,7 @@ typedef struct {
  */
 typedef enum  	{
 	OFF,  	// vypnuto, topeni nezmi bezet!
-	ON,		// zapnuto topeni, bez casovace
+	MANUAL,		// zapnuto topeni, bez casovace
 	AUTO	// zapnut termostat, jede se dle casoveho planu
 } Heating_mode;
 

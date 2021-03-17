@@ -19,6 +19,7 @@
 #include "usb_api.h"
 #include "pwm.h"
 #include "Time.h"
+#include "mode-auto.h"
 
 
 #define MAX_MENU_ITEM 5
@@ -48,7 +49,8 @@ typedef struct menu_item_s{
 }menu_item_t;
 
 extern menu_item_t* ActualMenu;
-extern int32_t temperature_set;
+
+extern int32_t temperature_manual;
 extern Buttons pushed_button;
 extern int8_t en_count;
 extern int32_t temperature;

@@ -86,7 +86,9 @@ int32_t humid = -5;
 uint32_t presure = 0;
 
 // Temp_seting and driving
-int32_t temperature_set = 2000;
+int32_t temperature_set;
+int32_t temperature_manual = 2000;
+;
 // END Temp_seting and driving
 
 Buttons pushed_button; //cleared each main cycle
@@ -185,9 +187,6 @@ int main(void)
 
 #ifdef DEBUG_TERMOSTAT //debug
 
-	
-	
-	
 #endif
 
 	HAL_Delay(1500);
@@ -209,7 +208,7 @@ int main(void)
 	fill_comparer(10, &heating_compare);		 // check it immediately
 	fill_comparer_seconds(30, &logging_compare); // chci zapisovat hned po zmereni hodnot / ZAPNUTI
 
-	init_auto_mode(&temp_auto); // inicializace automatickeho temperovani - nulovani
+	mode_auto_init(&temp_auto); // inicializace automatickeho temperovani - nulovani
 
 	show_timeout.tick = 0xfffffffe;
 	heating_instant_timeout.tick = 0;
@@ -274,9 +273,29 @@ int main(void)
 		 */
 		case HEATING:
 		{
-			if (flags.heating_instant)
-			{
 
+			if (AUTO == heat_mode)
+			{
+				temperature_set = mode_auto_temperature(&temp_auto, &hrtc); // teplota na jakou se ma topit
+
+				if (temperature_set == -20000) // vypni topeni
+				{
+					flags.heating_up = FALSE;
+					flags.regulation_temp = FALSE;
+				}
+				else if (temperature_set == -21000)
+				{
+					flags.heating_up = FALSE;
+					flags.regulation_temp = FALSE;
+				}
+				else
+				{
+					flags.regulation_temp = TRUE;
+				}
+			}
+
+			if (flags.heating_instant) // INSTANTni vyhrivani - vzdy jen max 2 hodiny
+			{
 				if (!comparer_timeout(&heating_instant_timeout))
 					turnOnHeater(temperature);
 				else
@@ -285,7 +304,7 @@ int main(void)
 					heat_instant = 0;
 				}
 			}
-			else
+			else // bezny provoz
 			{
 				if (flags.regulation_temp & (temperature < temperature_set))
 				{
@@ -353,11 +372,13 @@ int main(void)
 				char_magnitude(2);
 				snprintf(buffer_s, 12, "%3ld.%02d C", temperature / 100, abs(temperature % 100));
 				lcd_printString(buffer_s);
-
+#ifdef DEBUG_TERMOSTAT //debug
+				char_magnitude(1);
 				lcd_setCharPos(4, 3);
 				snprintf(buffer_s, 14, "%3ld.%02ld %%", (humid / 1024), humid % 1024 * 100 / 1024);
 				lcd_printString(buffer_s);
-
+				char_magnitude(2);
+#endif
 				// Marking - heating is active/not active
 				lcd_setCharPos(1, 19);
 				switch (heat_mode)
@@ -365,7 +386,7 @@ int main(void)
 				case OFF:
 					lcd_printString("-");
 					break;
-				case ON:
+				case MANUAL:
 					_putc(0x07f);
 					break;
 				case AUTO:
@@ -396,18 +417,14 @@ int main(void)
 				lcd_setCharPos(3, 2);
 				snprintf(buffer_s, 12, "set %3ld.%02d C", temperature_set / 100, abs(temperature_set % 100));
 				lcd_printString(buffer_s);
-#ifdef DEBUG_TERMOSTAT //debug
-				lcd_setCharPos(7, 2);
-				snprintf(buffer_s, 15, "temp %ld", temperature);
-				lcd_printString(buffer_s);
-#endif
+
 				/*	lcd_setCharPos(6,4);
   					snprintf(buffer_s, 18, "Pres %d.%02d hp",presure/100,presure%100);
   					lcd_printString(buffer_s);
 				 */
 
 #ifdef DEBUG_TERMOSTAT //debug
-				lcd_setCharPos(6, 0);
+				lcd_setCharPos(5, 0);
 				snprintf(buffer_s, 13, "%lu-> %lu.%02luV", InputVoltage, InputVoltage * 66 / 2550, (InputVoltage * 66 % 2550 * 100 / 255) / 10); // get two numbers for voltage
 				lcd_printString(buffer_s);
 #endif
@@ -418,6 +435,8 @@ int main(void)
 				{
 					line(0, 62, sirka, 62, 1);
 				}
+				if (heat_mode == AUTO)
+					mode_auto_graph(&temp_auto, &hrtc); // zakresleni casoveho diagramu zapnuti/ vypnuti topeni
 
 			} // end if - new data to show
 			if (show_time)
@@ -562,6 +581,7 @@ int main(void)
 		if (flags.temp_new_set)
 		{
 			flags.temp_new_set = FALSE;
+			temperature_set = temperature_manual;
 			show = desktop;
 		}
 		if (comparer_timeout(&backlite_compare))
@@ -604,21 +624,37 @@ int main(void)
 		case BUT_1:
 		{ // activate heater
 
-			heat_mode++;	   // cyklovani modu pro termostat
-			if (heat_mode > 2) // mam zde jen tri polozky, takze pri preteceni se musi dostat zpet na OFF
-				heat_mode = OFF;
-
-			if (OFF != heat_mode)
+			heat_mode++; // cyklovani modu pro termostat
+			switch (heat_mode)
+			{
+			case OFF:
+			{
+				flags.regulation_temp = FALSE;
+#ifndef DEBUG_TERMOSTAT								  ///// NOT - NEGOVANE!
+				temperature_set = temperature_manual; // kvuli zobrazovani, jinak tam muze byt -210 apodobne
+#endif
+				break;
+			}
+			case MANUAL:
 			{
 				flags.regulation_temp = TRUE;
 				flags.heating_up = TRUE;
+				temperature_set = temperature_manual;
+				break;
 			}
-			else
+			case AUTO:
+			{
+				flags.regulation_temp = TRUE;
+				flags.heating_up = TRUE;
+				break;
+			}
+			default:
 			{
 				flags.regulation_temp = FALSE;
+				heat_mode = OFF;
+				break;
 			}
-
-			//	show = debug;
+			}
 
 			break;
 		}
