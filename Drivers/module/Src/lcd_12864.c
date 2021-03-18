@@ -265,7 +265,7 @@ void character(uint8_t x, uint8_t y, char c)
     unsigned char *zeichen;
     unsigned char z, w;
 
-    if ((c < 31) || (c > 132))
+    if ((c < 31) || (c > FONT_LAST_CHAR))
     {
         return;
     } // test char range
@@ -327,7 +327,11 @@ void character(uint8_t x, uint8_t y, char c)
         //	line_clear(char_y);
     }
 }
-
+/**
+ * @brief smaze cely radek - velikosti pismena
+ * 
+ * @param y - hodni hrana pozice pro smazani radky
+ */
 void line_clear(uint8_t y)
 {
     uint8_t vert, j, i, x;
@@ -342,6 +346,23 @@ void line_clear(uint8_t y)
         }
     }
 }
+
+/**
+ * @brief smaze linku (jeden pixel na vysku)
+ * 
+ * @param y vertikalni cislo pixelu
+ */
+void line_pixel_clear(uint8_t y)
+{
+    uint8_t i, x;
+    // read font parameter from start of array
+    x = 0;
+    for (i = 0; i < lcd_width; i++)
+    { //  horz line
+        pixel(x + i, y, 0);
+    }
+}
+
 // set one pixel in buffer
 void pixel(uint8_t x, uint8_t y, uint8_t color)
 {
@@ -362,6 +383,15 @@ uint8_t height()
 {
     return (lcd_height);
 }
+/**
+ * @brief kresleni cary
+ * 
+ * @param x0 - start pixel vertical
+ * @param y0 - start pixel horizont
+ * @param x1 - end pixel vertical
+ * @param y1 - end pixel horizont
+ * @param color - do not use
+ */
 void line(int x0, int y0, int x1, int y1, int color)
 {
     int dx = 0, dy = 0;

@@ -53,6 +53,7 @@ void mode_auto_init(Mode_auto_s *actual_auto);
 void mode_auto_sort(Mode_auto_s *actual_auto);
 int16_t mode_auto_temperature(Mode_auto_s *actual_auto, RTC_HandleTypeDef *RtcHandle);
 void mode_auto_graph(Mode_auto_s *actual_auto, RTC_HandleTypeDef *RtcHandle);
+void mode_auto_graph_delete();
 
 
 #endif

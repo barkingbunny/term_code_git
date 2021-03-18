@@ -167,9 +167,9 @@ void mode_auto_graph(Mode_auto_s *actual_auto, RTC_HandleTypeDef *RtcHandle)
 		uint16_t actualHoursMinutes = stimestructureget.Hours * 60 + stimestructureget.Minutes;
 		konec = actualHoursMinutes * lcd_usable_width / hoursMinutesMax;
 
-		line_clear(49);
+		line_clear(48);
 
-		line((konec + 4), 49, (konec + 4), 55, 1); //casova znacka
+		line((konec + 4), 48, (konec + 4), 55, 1); //casova znacka
 
 		for (uint8_t index = 0; index < AUTO_TIMERS; index++)
 		{
@@ -181,7 +181,7 @@ void mode_auto_graph(Mode_auto_s *actual_auto, RTC_HandleTypeDef *RtcHandle)
 			}
 		}
 
-/*		if (actual_auto->activeIndex == 1)
+		/*		if (actual_auto->activeIndex == 1)
 			konec = lcd_usable_width;
 		else
 			konec = hoursMinutes[actual_auto->activeIndex - 1] * lcd_usable_width / hoursMinutesMax;
@@ -257,3 +257,8 @@ void mode_auto_graph(Mode_auto_s *actual_auto, RTC_HandleTypeDef *RtcHandle)
 		}
 	}
 } /* END OF  - SEM BUDU PSAT proceduru pro vygresleni GRAFU, co znazorni zap/vyp topeni v jednodenim cyklu*/
+
+void mode_auto_graph_delete()
+{
+	line_clear(49);
+}

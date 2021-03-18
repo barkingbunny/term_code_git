@@ -301,6 +301,7 @@ int main(void)
 				else
 				{
 					flags.heating_instant = FALSE;
+					flags.heating_instant_req = TRUE;
 					heat_instant = 0;
 				}
 			}
@@ -374,9 +375,11 @@ int main(void)
 				lcd_printString(buffer_s);
 #ifdef DEBUG_TERMOSTAT //debug
 				char_magnitude(1);
+#endif
 				lcd_setCharPos(4, 3);
 				snprintf(buffer_s, 14, "%3ld.%02ld %%", (humid / 1024), humid % 1024 * 100 / 1024);
 				lcd_printString(buffer_s);
+#ifdef DEBUG_TERMOSTAT //debug
 				char_magnitude(2);
 #endif
 				// Marking - heating is active/not active
@@ -415,7 +418,14 @@ int main(void)
 
 				char_magnitude(1);
 				lcd_setCharPos(3, 2);
-				snprintf(buffer_s, 12, "set %3ld.%02d C", temperature_set / 100, abs(temperature_set % 100));
+				if (-20000 == temperature_set)
+					snprintf(buffer_s, 12, "set  OFF");
+				else if (-21000 == temperature_set)
+				{
+					snprintf(buffer_s, 12, "set  NO PRESET");
+				}
+				else
+					snprintf(buffer_s, 12, "set %3ld.%02d C", temperature_set / 100, abs(temperature_set % 100));
 				lcd_printString(buffer_s);
 
 				/*	lcd_setCharPos(6,4);
@@ -435,7 +445,8 @@ int main(void)
 				{
 					line(0, 62, sirka, 62, 1);
 				}
-				if (heat_mode == AUTO)
+
+				if ((heat_mode == AUTO) & (!flags.heating_instant))
 					mode_auto_graph(&temp_auto, &hrtc); // zakresleni casoveho diagramu zapnuti/ vypnuti topeni
 
 			} // end if - new data to show
@@ -633,6 +644,7 @@ int main(void)
 #ifndef DEBUG_TERMOSTAT								  ///// NOT - NEGOVANE!
 				temperature_set = temperature_manual; // kvuli zobrazovani, jinak tam muze byt -210 apodobne
 #endif
+				mode_auto_graph_delete();
 				break;
 			}
 			case MANUAL:
@@ -640,6 +652,7 @@ int main(void)
 				flags.regulation_temp = TRUE;
 				flags.heating_up = TRUE;
 				temperature_set = temperature_manual;
+				mode_auto_graph_delete();
 				break;
 			}
 			case AUTO:

@@ -120,7 +120,11 @@ uint8_t menu_action()
 					position_x = 0;
 					break;
 				} // end case date
-
+				case (setTemperature):
+				{ // inicializace promene pred vlezenim do tohoto menu
+					position_x = 0;
+					break;
+				}
 				case (backlight_intensity):
 				{
 					backlite_value = PWM_duty_read(LCD_LIGHT);
@@ -197,14 +201,14 @@ uint8_t menu_action()
 		}
 		if (position_x == 0)
 		{
-			if (set_datestruct.Year + en_count < 1)
-				set_datestruct.Year = set_datestruct.Year + 100 + en_count;
+			if (set_datestruct.Date + en_count < 1)
+				set_datestruct.Date = set_datestruct.Date + 31 + en_count;
 			else
 			{
-				set_datestruct.Year = set_datestruct.Year + en_count;
+				set_datestruct.Date = set_datestruct.Date + en_count;
 			}
-			if (set_datestruct.Year > 99)
-				set_datestruct.Year -= 100;
+			if (set_datestruct.Date > 31)
+				set_datestruct.Date -= 31;
 		}
 		if (position_x == 1)
 		{
@@ -219,14 +223,14 @@ uint8_t menu_action()
 		}
 		if (position_x == 2)
 		{
-			if (set_datestruct.Date + en_count < 1)
-				set_datestruct.Date = set_datestruct.Date + 31 + en_count;
+			if (set_datestruct.Year + en_count < 1)
+				set_datestruct.Year = set_datestruct.Year + 100 + en_count;
 			else
 			{
-				set_datestruct.Date = set_datestruct.Date + en_count;
+				set_datestruct.Year = set_datestruct.Year + en_count;
 			}
-			if (set_datestruct.Date > 31)
-				set_datestruct.Date -= 31;
+			if (set_datestruct.Year > 99)
+				set_datestruct.Year -= 100;
 		}
 		if (position_x == 3)
 		{ // last click with encoder
@@ -528,12 +532,23 @@ void display_menu(menu_item_t *display_menu)
 			lcd_setCharPos(1, 10);
 			lcd_printString(buffer_menu);
 
-#ifdef DEBUG_TERMOSTAT
-			lcd_setCharPos(7, 8);
-			snprintf(buffer_menu, 19, "pozice %d", position_x);
-			lcd_printString(buffer_menu);
-#endif
-
+			// aktivni text oznacen podtrzenim
+			line_pixel_clear(17);
+			// pouzivam switch - rychlejsi operace nez pouziti vzorce - viz default.
+			switch (position_x)
+			{
+			case 0:
+				line((59), 17, (71), 17, 1);
+				break;
+			case 1:
+				line((77), 17, (89), 17, 1);
+				break;
+			case 2:
+				line((95), 17, (107), 17, 1);
+				break;
+			default:
+				line((59 + position_x * 18), 17, (71 + position_x * 18), 17, 1);
+			}
 			break;
 		}
 		case (date):
@@ -541,6 +556,23 @@ void display_menu(menu_item_t *display_menu)
 			RTC_DateShow_date(&set_datestruct, buffer_menu);
 			lcd_setCharPos(1, 10);
 			lcd_printString(buffer_menu);
+			// aktivni text oznacen podtrzenim
+			line_pixel_clear(17);
+			// pouzivam switch - rychlejsi operace nez pouziti vzorce - viz default.
+			switch (position_x)
+			{
+			case 0:
+				line((59), 17, (71), 17, 1);
+				break;
+			case 1:
+				line((77), 17, (89), 17, 1);
+				break;
+			case 2: // rok ma zmenu jen na dvou poslednich
+				line((107), 17, (119), 17, 1);
+				break;
+			default:
+				line((59 + position_x * 18), 17, (71 + position_x * 18), 17, 1);
+			}
 			break;
 		}
 		case (setTemperature):
@@ -552,10 +584,10 @@ void display_menu(menu_item_t *display_menu)
 				lcd_printString(buffer_menu);
 
 				lcd_setCharPos(2, 0);
-				snprintf(buffer_menu, 18, "stav:   %5s", temp_auto.status[temp_index].state ? "Zapni" : "Vypni");
+				snprintf(buffer_menu, 14, "stav:   %5s", temp_auto.status[temp_index].state ? "Zapni" : "Vypni");
 				lcd_printString(buffer_menu);
 				lcd_setCharPos(3, 0);
-				snprintf(buffer_menu, 18, "cas:    %02d:%02d", temp_auto.time_s[temp_index].hours, temp_auto.time_s[temp_index].minutes);
+				snprintf(buffer_menu, 14, "cas:    %02d:%02d", temp_auto.time_s[temp_index].hours, temp_auto.time_s[temp_index].minutes);
 				lcd_printString(buffer_menu);
 				lcd_setCharPos(4, 0);
 				snprintf(buffer_menu, 18, "temp:  %3ld.%02ld C ", temp_auto.tempOn[temp_index] / 100, abs(temp_auto.tempOn[temp_index] % 100));
@@ -564,10 +596,55 @@ void display_menu(menu_item_t *display_menu)
 				snprintf(buffer_menu, 8, "ID: %2u", temp_index + 1);
 				lcd_printString(buffer_menu);
 
+				// aktivni cast - sipka
+				switch (position_x)
+				{
+				case 0:
+					lcd_setCharPos((1), 13);
+					_putc(0x085);
+					copy_to_lcd();
+					break;
+					case 1:
+					lcd_setCharPos((1), 13);
+					_putc(' '); // delete symbol
+					lcd_setCharPos((2), 13);
+					_putc(0x085);
+					copy_to_lcd();
+					break;
+					case 2:
+					lcd_setCharPos((2), 13);
+					_putc(' '); // delete symbol
+					lcd_setCharPos((3), 13);
+					_putc(0x085);
+					copy_to_lcd();
+					break;
+					case 3:
+					lcd_setCharPos((3), 13);
+					_putc(' '); // delete symbol
+					lcd_setCharPos((3), 15);
+					_putc(0x085);
+					copy_to_lcd();
+					break;
+					case 4:
+					lcd_setCharPos((3), 15);
+					_putc(' '); // delete symbol
+					lcd_setCharPos((4), 13);
+					_putc(0x085);
+					copy_to_lcd();
+					break;
+				default:
+					lcd_setCharPos((position_x), 13);
+					_putc(' '); // delete symbol
+					lcd_setCharPos((position_x + 1), 13);
+					_putc(0x085);
+					copy_to_lcd();
+					break;
+				}
+
 				/* SEM BUDU PSAT proceduru pro vygresleni GRAFU, co znazorni zap/vyp topeni v jednodenim cyklu*/
 				if (last_temp_index != temp_index) // pokud nastala zmena - dalsi nastaveni pameti
 				{
-					mode_auto_graph(&temp_auto,&hrtc);
+					mode_auto_graph(&temp_auto, &hrtc);
 					last_temp_index = temp_index;
 				}
 				// Prekreslit caru - znaceni zapnuti a vypnut doby 120/24 = 5tecek na hodinu

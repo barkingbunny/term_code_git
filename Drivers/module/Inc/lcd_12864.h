@@ -7,6 +7,8 @@
 
 #ifndef NEW_LCD_12864_H_
 #define NEW_LCD_12864_H_
+
+#define FONT_LAST_CHAR 0x85
 // define of the variables
 
 	uint8_t lcd_width;
@@ -40,6 +42,7 @@ void copy_to_lcd(void);
 int _putc(uint8_t value);
 void pixel(uint8_t x, uint8_t y, uint8_t color);
 void line_clear(uint8_t y);
+void line_pixel_clear(uint8_t y);
 uint8_t width();
 uint8_t height();
 void char_magnitude(uint8_t input);
