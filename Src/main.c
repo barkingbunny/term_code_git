@@ -676,13 +676,24 @@ int main(void)
 
 			flags.heating_instant = TRUE;
 			flags.heating_instant_req = TRUE;
+			uint16_t instantEndTime;
+			if (0 < heat_instant) // Oprava konstanty pro pripad, ze se tlacitko stikne po delsi dobe, ktera muze byt nasobnosti HEATING_INSTANT.
+			{
+				instantEndTime = end_of_timeout(&heating_instant_timeout);
+				heat_instant = instantEndTime / HEATING_INSTANT + 1;
+			}
 			heat_instant++;
-			if (6 < heat_instant)
+			if (HEATING_INSTANT_ITERATION_MAX < heat_instant)
 			{
 				flags.heating_instant = FALSE;
 				heat_instant = 0;
 			}
-			fill_comparer_seconds(HEATING_INSTANT * heat_instant, &heating_instant_timeout);
+			if (2 > heat_instant)
+				fill_comparer_seconds(HEATING_INSTANT * heat_instant, &heating_instant_timeout);
+			else
+			{
+				fill_comparer_seconds(HEATING_INSTANT + instantEndTime, &heating_instant_timeout);
+			}
 			break;
 		}
 		case BUT_ENC:

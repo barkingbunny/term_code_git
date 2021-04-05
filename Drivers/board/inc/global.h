@@ -10,7 +10,7 @@
 
 #include "stm32l0xx_hal.h"
 
-#define SW_VERSION 276 //verze softwaru
+#define SW_VERSION 278 //verze softwaru
 
 //NASTAVENI:
 //#define DEBUG_TERMOSTAT 		// debug of the code is turned OFF
@@ -53,6 +53,7 @@
 #endif
 
 #define HEATING_INSTANT 1200 // in seconds for 20 minutes is turned on the instant heating
+#define HEATING_INSTANT_ITERATION_MAX 6
 
 #define HEATING_HYSTERESIS 50 // hysteresis is 0.5 deg C ( X/50)
 

@@ -628,7 +628,7 @@ void display_menu(menu_item_t *display_menu)
 					case 4:
 					lcd_setCharPos((3), 15);
 					_putc(' '); // delete symbol
-					lcd_setCharPos((4), 13);
+					lcd_setCharPos((4), 15);
 					_putc(0x085);
 					copy_to_lcd();
 					break;
