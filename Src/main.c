@@ -369,34 +369,37 @@ int main(void)
 			if (flags.new_data_to_show == TRUE)
 			{
 				// BME280 sensor
-				lcd_setCharPos(1, 3);
+				lcd_setCharPos(1, 2);
 				char_magnitude(2);
 				snprintf(buffer_s, 12, "%3ld.%02d C", temperature / 100, abs(temperature % 100));
 				lcd_printString(buffer_s);
 #ifdef DEBUG_TERMOSTAT //debug
 				char_magnitude(1);
 #endif
-				lcd_setCharPos(4, 3);
-				snprintf(buffer_s, 14, "%3ld.%02ld %%", (humid / 1024), humid % 1024 * 100 / 1024);
+				char_magnitude(1);
+				lcd_setCharPos(5, 2);
+				snprintf(buffer_s, 21, "Humidity  %3ld.%02ld%%", (humid / 1024), humid % 1024 * 100 / 1024);
 				lcd_printString(buffer_s);
 #ifdef DEBUG_TERMOSTAT //debug
 				char_magnitude(2);
 #endif
 				// Marking - heating is active/not active
-				lcd_setCharPos(1, 19);
+				lcd_setCharPos(3, 4);
+				lcd_printString(MENU_SET_TEMP_AUTO_STATE_TEXT);
+				lcd_printString(" ");
 				switch (heat_mode)
 				{
 				case OFF:
-					lcd_printString("-");
+					lcd_printString("OFF ");
 					break;
 				case MANUAL:
-					_putc(0x07f);
+					lcd_printString("ON  ");
 					break;
 				case AUTO:
-					lcd_printString("A");
+					lcd_printString("Auto");
 					break;
 				default:
-					lcd_printString("E"); //ERROR dostal jsem se mimo definovanou skupinu
+					lcd_printString("Err"); //ERROR dostal jsem se mimo definovanou skupinu
 					break;
 				}
 
@@ -417,15 +420,15 @@ int main(void)
 				// END Marking - heating is active/not active
 
 				char_magnitude(1);
-				lcd_setCharPos(3, 2);
+				lcd_setCharPos(4, 3);
 				if (-20000 == temperature_set)
-					snprintf(buffer_s, 12, "set  OFF");
+					snprintf(buffer_s, 24, MENU_DESKTOP_TEMP_SET_TEXT"  OFF       ");
 				else if (-21000 == temperature_set)
 				{
-					snprintf(buffer_s, 12, "set  NO PRESET");
+					snprintf(buffer_s, 24, MENU_DESKTOP_TEMP_SET_TEXT" NO PRESET");
 				}
 				else
-					snprintf(buffer_s, 12, "set %3ld.%02d C", temperature_set / 100, abs(temperature_set % 100));
+					snprintf(buffer_s, 24, MENU_DESKTOP_TEMP_SET_TEXT" %3ld.%02d C ", temperature_set / 100, abs(temperature_set % 100));
 				lcd_printString(buffer_s);
 
 				/*	lcd_setCharPos(6,4);

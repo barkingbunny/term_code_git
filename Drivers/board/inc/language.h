@@ -17,7 +17,7 @@
 #define MENU_SET_TEMP_AUTO_ENABLE_TEXT "Enable"
 #define MENU_SET_TEMP_AUTO_ENABLE_VARIABLE_A "YES"
 #define MENU_SET_TEMP_AUTO_ENABLE_VARIABLE_B "NO"
-#define MENU_SET_TEMP_AUTO_STATE_TEXT "heater"
+#define MENU_SET_TEMP_AUTO_STATE_TEXT "Heater"
 #define MENU_SET_TEMP_AUTO_STATE_VARIABLE_A "Run  "
 #define MENU_SET_TEMP_AUTO_STATE_VARIABLE_B "OFF  "
 
@@ -27,6 +27,8 @@
 #define MENU_SET_TEMP_AUTO_STATE_VARIABLE_PRINT_B "OFF"
 
 #define MENU_LOG_COUNT_TEXT "Log  count"
+
+#define MENU_DESKTOP_TEMP_SET_TEXT "Set to"
 
 #else
 #define HEAD_SET_BACKLITE " Nastaveni podsviceni\r"
@@ -43,6 +45,8 @@
 #define MENU_SET_TEMP_AUTO_STATE_VARIABLE_PRINT_B "Vyp"
 
 #define MENU_LOG_COUNT_TEXT "Pocet logu"
+
+#define MENU_DESKTOP_TEMP_SET_TEXT "Nastaveno"
 
 #endif
 
