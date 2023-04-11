@@ -337,7 +337,7 @@ uint8_t menu_action()
 					{
 
 						lcd_setCharPos(index_a, 1);
-						snprintf(buffer_menu, 33, "%02d:%02d;%3s;%3ld.%02ld C", temp_auto.time_s[temp_auto.sortIndex[index_a]].hours, temp_auto.time_s[temp_auto.sortIndex[index_a]].minutes, temp_auto.status[temp_auto.sortIndex[index_a]].state ? "Zap" : "Vyp", temp_auto.tempOn[temp_auto.sortIndex[index_a]] / 100, abs(temp_auto.tempOn[temp_auto.sortIndex[index_a]] % 100));
+						snprintf(buffer_menu, 33, "%02d:%02d;%3s;%3ld.%02ld C", temp_auto.time_s[temp_auto.sortIndex[index_a]].hours, temp_auto.time_s[temp_auto.sortIndex[index_a]].minutes, temp_auto.status[temp_auto.sortIndex[index_a]].state ? MENU_SET_TEMP_AUTO_STATE_VARIABLE_PRINT_A : MENU_SET_TEMP_AUTO_STATE_VARIABLE_PRINT_B, temp_auto.tempOn[temp_auto.sortIndex[index_a]] / 100, abs(temp_auto.tempOn[temp_auto.sortIndex[index_a]] % 100));
 						lcd_printString(buffer_menu);
 					}
 					HAL_Delay(3500);
@@ -445,7 +445,7 @@ uint8_t menu_action()
 		char buffer_menu[32];
 		lcd_clear();
 		lcd_setCharPos(2, 0);
-		snprintf(buffer_menu, 20, "Pocet logu %3u/%u", Log_memory_fullness(), LOG_DATA_LENGTH);
+		snprintf(buffer_menu, 20, MENU_LOG_COUNT_TEXT" %3u/%u", Log_memory_fullness(), LOG_DATA_LENGTH);
 		lcd_printString(buffer_menu);
 
 		//vymazani logovaci databaze/pameti
@@ -455,7 +455,7 @@ uint8_t menu_action()
 		snprintf(buffer_menu, 20, "Log memory - erased");
 		lcd_printString(buffer_menu);
 		lcd_setCharPos(5, 0);
-		snprintf(buffer_menu, 20, "Pocet logu %3u/%u", Log_memory_fullness(), LOG_DATA_LENGTH);
+		snprintf(buffer_menu, 20, MENU_LOG_COUNT_TEXT" %3u/%u", Log_memory_fullness(), LOG_DATA_LENGTH);
 		lcd_printString(buffer_menu);
 
 		HAL_Delay(1000);
@@ -580,14 +580,14 @@ void display_menu(menu_item_t *display_menu)
 			if ((AUTO == heat_mode)) // pouze vypisovaci konzole
 			{
 				lcd_setCharPos(1, 0);
-				snprintf(buffer_menu, 18, "funkcni:  %3s", temp_auto.status[temp_index].valid_timer ? "ANO" : "NE");
+				snprintf(buffer_menu, 18, MENU_SET_TEMP_AUTO_ENABLE_TEXT": %3s", temp_auto.status[temp_index].valid_timer ? MENU_SET_TEMP_AUTO_ENABLE_VARIABLE_A : MENU_SET_TEMP_AUTO_ENABLE_VARIABLE_B);
 				lcd_printString(buffer_menu);
 
 				lcd_setCharPos(2, 0);
-				snprintf(buffer_menu, 14, "stav:   %5s", temp_auto.status[temp_index].state ? "Zapni" : "Vypni");
+				snprintf(buffer_menu, 14, MENU_SET_TEMP_AUTO_STATE_TEXT": %5s", temp_auto.status[temp_index].state ? MENU_SET_TEMP_AUTO_STATE_VARIABLE_A : MENU_SET_TEMP_AUTO_STATE_VARIABLE_B);
 				lcd_printString(buffer_menu);
 				lcd_setCharPos(3, 0);
-				snprintf(buffer_menu, 14, "cas:    %02d:%02d", temp_auto.time_s[temp_index].hours, temp_auto.time_s[temp_index].minutes);
+				snprintf(buffer_menu, 14, MENU_SET_TEMP_AUTO_TIME_TEXT":   %02d:%02d", temp_auto.time_s[temp_index].hours, temp_auto.time_s[temp_index].minutes);
 				lcd_printString(buffer_menu);
 				lcd_setCharPos(4, 0);
 				snprintf(buffer_menu, 18, "temp:  %3ld.%02ld C ", temp_auto.tempOn[temp_index] / 100, abs(temp_auto.tempOn[temp_index] % 100));
@@ -713,7 +713,7 @@ void display_menu(menu_item_t *display_menu)
 				en_count = 0;
 			}
 			lcd_setCharPos(1, 0);
-			lcd_printString(" Nastaveni podsviceni\r");
+			lcd_printString(HEAD_SET_BACKLITE);
 			lcd_printString("\r");
 			char_magnitude(2);
 			snprintf(buffer_menu, 10, " %3u", PWM_duty_read(LCD_LIGHT));

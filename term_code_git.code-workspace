@@ -6,6 +6,10 @@
     ],
     "settings": {
         "cortex-debug.armToolchainPath": "/usr/local/bin",
-        "cortex-debug.openocdPath": "/usr/bin/openocd"
+        "cortex-debug.openocdPath": "/usr/bin/openocd",
+        "files.associations": {
+            "menudef.h": "c",
+            "menu.h": "c"
+        }
     }
 }

@@ -10,7 +10,7 @@
 
 #include "stm32l0xx_hal.h"
 
-#define SW_VERSION 276 //verze softwaru
+#define SW_VERSION 280 //verze softwaru
 
 //NASTAVENI:
 //#define DEBUG_TERMOSTAT 		// debug of the code is turned OFF
@@ -37,6 +37,8 @@
 	FLASH usage of program, = text + data.
 
  */
+#define LANGUAGE_DEF EN //Jazyk - EN, CZ
+
 
 #define BUT_DELAY 1		// in milisecond - I want to read it quckly
 #define MAIN_LOOP 25		// in milisecond

@@ -20,6 +20,7 @@
 #include "pwm.h"
 #include "Time.h"
 #include "mode-auto.h"
+#include "language.h"
 
 
 #define MAX_MENU_ITEM 5
