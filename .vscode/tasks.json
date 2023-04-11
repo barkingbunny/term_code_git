@@ -10,7 +10,7 @@
             "type": "shell",
             "command": "/usr/bin/make",
             "args": [
-                "GCC_PATH=/usr/local/bin",
+                "GCC_PATH=/usr/bin",
                 "-j6"
             ],
             "problemMatcher": {
